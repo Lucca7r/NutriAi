@@ -1,13 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native';
-import HomeScreen from './src/screens/HomeScreen';
+import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
+import BottomTabs from './src/navigation/BottomTabs';
+import { ThemeProvider } from './src/context/ThemeContext';
 
 export default function App() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <HomeScreen />
-      <StatusBar style="auto" />
-    </SafeAreaView>
+    <ThemeProvider>
+      <NavigationContainer>
+        <BottomTabs />
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }

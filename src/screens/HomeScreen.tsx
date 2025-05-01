@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 
+import BottomTabs from '../navigation/BottomTabs';
+
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
@@ -8,6 +10,7 @@ export default function HomeScreen() {
       
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Entrar</Text>
+   
       </TouchableOpacity>
     </View>
   );
