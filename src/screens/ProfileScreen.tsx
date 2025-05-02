@@ -1,19 +1,36 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+} from 'react-native';
+import { useTheme, useThemeColors } from '../context/ThemeContext';
+import ProfileHeader from '../components/ProfileHeader';
 
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useTheme();
+  const colors = useThemeColors();
   const isDark = theme === 'dark';
 
   return (
-    <View style={[styles.container, isDark && styles.darkContainer]}>
-      <Text style={[styles.title, isDark && styles.darkText]}>Perfil</Text>
-      <Button
-        title={`Alternar para modo ${isDark ? 'claro' : 'escuro'}`}
-        onPress={toggleTheme}
-        color={isDark ? '#fff' : '#000'}
-      />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ProfileHeader />
+
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: colors.text }]}>Modo Escuro</Text>
+        <Switch value={isDark} onValueChange={toggleTheme} />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity>
+          <Text style={[styles.link, { color: colors.icon }]}>Editar Perfil</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={[styles.link, { color: colors.icon }]}>Sair da Conta</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -21,19 +38,18 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 24,
   },
-  darkContainer: {
-    backgroundColor: '#1a1a1a',
+  section: {
+    marginTop: 30,
+    paddingHorizontal: 12,
   },
-  title: {
-    fontSize: 22,
-    marginBottom: 20,
-    color: '#000',
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
   },
-  darkText: {
-    color: '#fff',
+  link: {
+    fontSize: 16,
+    paddingVertical: 10,
   },
 });
