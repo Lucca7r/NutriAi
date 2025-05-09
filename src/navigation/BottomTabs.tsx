@@ -12,6 +12,8 @@ import ChatIcon from "../../assets/message-circle.svg";
 import FavoriteIcon from "../../assets/favorite.svg";
 import UserIcon from "../../assets/user.svg";
 
+import styles from "../styles/BottomTabs.style";
+
 import { useTheme } from "../context/ThemeContext";
 
 const Tab = createBottomTabNavigator();
@@ -80,27 +82,3 @@ export default function BottomTabs() {
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: "#41424A",
-    height: 85,
-    marginHorizontal: "7.5%",
-    borderRadius: 50,
-    position: "absolute",
-    bottom: 25,
-    borderTopWidth: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-
-  iconWrapper: {
-    backgroundColor: "#5A5B63",
-    borderRadius: 50,
-    padding: 18,
-  },
-  activeIcon: {
-    backgroundColor: "#fff",
-  },
-});
