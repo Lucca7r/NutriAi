@@ -9,7 +9,7 @@ const openai = new OpenAI({
 export const sendMessageToAI = async (message: string): Promise<string> => {
   try {
     const response = await openai.responses.create({
-      model: 'gpt-4.1',
+      model: 'gpt-4.1-mini',   //teste modelos nao turbos
       input: message,
     });
 
