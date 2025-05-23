@@ -9,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
+import { sendMessageToAI } from "../services/openaiService";
 
 import styles from "../styles/ChatScreen.style";
 interface Message {
@@ -22,7 +23,7 @@ export const ChatScreen = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (input.trim() === "") return;
 
     const newMessage: Message = {
@@ -32,20 +33,30 @@ export const ChatScreen = () => {
     };
 
     setMessages((prev) => [...prev, newMessage]);
+    setInput("");
 
-    // Aqui você pode chamar a API do Chat GPT e depois setar a resposta:
-    setTimeout(() => {
+    // Chama a API e adiciona a resposta do bot
+    try {
+      const responseText = await sendMessageToAI(input);
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString() + "_bot",
-          text: "Essa é uma resposta automática da IA.",
+          text: responseText,
           sender: "bot",
         },
       ]);
-    }, 1000);
-
-    setInput("");
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString() + "_bot",
+          text: "Erro ao obter resposta da IA.",
+          sender: "bot",
+        },
+      ]);
+    }
   };
 
   const renderItem = ({ item }: { item: Message }) => (
