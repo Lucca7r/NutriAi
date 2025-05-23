@@ -3,7 +3,7 @@ import { OPENAI_API_KEY } from '@env';
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // necessário no ambiente React Native Web ou Expo
+  dangerouslyAllowBrowser: true, 
 });
 
 export const sendMessageToAI = async (message: string): Promise<string> => {
