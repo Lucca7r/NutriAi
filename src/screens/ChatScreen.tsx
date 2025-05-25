@@ -11,6 +11,8 @@ import {
 import { useThemeColors } from "../context/ThemeContext";
 import { sendMessageToAI } from "../services/openaiService";
 
+
+
 import styles from "../styles/ChatScreen.style";
 interface Message {
   id: string;
@@ -76,7 +78,7 @@ export const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={100} // ajuste conforme necessário para não sobrepor o tabBar
     >
