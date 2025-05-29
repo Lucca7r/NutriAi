@@ -1,0 +1,107 @@
+import React, { useState } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "../context/ThemeContext";
+import { createCadastroStyles } from "../styles/CadastroScreen.style";
+
+import type { StackNavigationProp } from "@react-navigation/stack";
+
+type RootStackParamList = {
+  Login: undefined;
+};
+
+type CadastroScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Login"
+>;
+
+interface CadastroScreenProps {
+  navigation: CadastroScreenNavigationProp;
+}
+
+const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
+  const colors = useThemeColors();
+  const styles = createCadastroStyles(colors);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  return (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="nutrition" size={32} color={colors.text} />
+          <Text style={styles.logoText}>NutriAI</Text>
+        </View>
+        <Text style={styles.title}>Crie Uma Nova Conta</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nome"
+          placeholderTextColor={colors.text}
+          value={nome}
+          onChangeText={setNome}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
+          placeholderTextColor={colors.text}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor={colors.text}
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmação de senha"
+          placeholderTextColor={colors.text}
+          value={confirmarSenha}
+          onChangeText={setConfirmarSenha}
+          secureTextEntry
+        />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => console.log("Criar Conta")}
+        >
+          <Text style={styles.buttonText}>Criar Conta</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => console.log("Cadastrar com Google")}
+        >
+          {/* Você precisará adicionar o ícone do Google aqui */}
+          <Text style={styles.googleButtonText}>Cadastre-se com o Google</Text>
+        </TouchableOpacity>
+        <View style={styles.linkContainer}>
+          <Text style={styles.linkText}>
+            Já possui uma conta?{" "}
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.link}>Entre</Text>
+            </TouchableOpacity>
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
+    </TouchableWithoutFeedback>
+  );
+};
+export default CadastroScreen;
