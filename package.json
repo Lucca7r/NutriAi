@@ -15,7 +15,7 @@
     "@react-navigation/native-stack": "^7.3.9",
     "@react-navigation/stack": "^7.3.2",
     "axios": "^1.8.4",
-    "expo": "^53.0.0",
+    "expo": "^53.0.9",
     "expo-status-bar": "~2.2.3",
     "nutriai": "file:",
     "openai": "^4.103.0",
@@ -27,7 +27,7 @@
     "react-native-paper": "^5.13.1",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.10.0",
+    "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0"

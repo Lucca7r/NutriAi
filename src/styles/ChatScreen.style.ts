@@ -23,7 +23,6 @@ export default StyleSheet.create({
     paddingHorizontal: 12,
     height: 45,
     marginHorizontal: 16,
-    marginBottom: 110,
   },
   inputInside: {
     flex: 1,

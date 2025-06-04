@@ -3,15 +3,18 @@ import React from 'react';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../@types/navigation';
+import { useThemeColors } from '../context/ThemeContext';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen = ({ navigation }: Props) => {
+  const colors = useThemeColors();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao Nutri Ai 🥦</Text>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
+      <Text style={[styles.title, {color: colors.text}]}>Bem-vindo ao Nutri AI 🥦</Text>
       <TouchableOpacity
-        style={styles.button}
+        style={styles.button }
         onPress={() => navigation.navigate('Cadastro')}
       >
         <Text style={styles.buttonText}>Entrar</Text>
@@ -27,7 +30,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f2f2f2',
     paddingHorizontal: 20,
   },
   title: {

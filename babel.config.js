@@ -3,7 +3,13 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
-      ["module:react-native-dotenv"], // plugin para usar .env
+      ["module:react-native-dotenv",
+        {
+          moduleName: "@env",
+          path: ".env",
+          allowUndefined: true,
+        }
+      ], // plugin para usar .env
       "react-native-reanimated/plugin", // deve vir por último
     ],
   };
