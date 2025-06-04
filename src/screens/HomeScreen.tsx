@@ -1,20 +1,26 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 
-import BottomTabs from '../navigation/BottomTabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../@types/navigation';
 
-export default function HomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+const HomeScreen = ({ navigation }: Props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bem-vindo ao Nutri Ai 🥦</Text>
-      
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Cadastro')}
+      >
         <Text style={styles.buttonText}>Entrar</Text>
-   
       </TouchableOpacity>
     </View>
   );
-}
+};
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -30,7 +36,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   button: {
-    backgroundColor: '#4CAF50', // verde
+    backgroundColor: '#4CAF50',
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 25,
