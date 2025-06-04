@@ -8,13 +8,12 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createLoginStyles } from "../styles/LoginScreen.style";
 
 import type { StackNavigationProp } from "@react-navigation/stack";
-import type { RootStackParamList } from '../@types/navigation'; 
-
+import type { RootStackParamList } from "../@types/navigation";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -32,17 +31,16 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [senha, setSenha] = useState("");
 
   const handleLogin = () => {
-    
     console.log("Email:", email, "Senha:", senha);
-    
+
     navigation.reset({
       index: 0,
-      routes: [{ name: "Main" }], 
+      routes: [{ name: "Main" }],
     });
   };
 
   const navigateToCadastro = () => {
-    navigation.navigate("Cadastro"); 
+    navigation.navigate("Cadastro");
   };
 
   return (
@@ -57,7 +55,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
           <TextInput
             style={styles.input}
             placeholder="E-mail"
-            placeholderTextColor={colors.textSecondary || colors.text} 
+            placeholderTextColor={colors.textSecondary || colors.text}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -66,33 +64,26 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
           <TextInput
             style={styles.input}
             placeholder="Senha"
-            placeholderTextColor={colors.textSecondary || colors.text} 
+            placeholderTextColor={colors.textSecondary || colors.text}
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
           />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleLogin}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Entrar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.googleButton}
             onPress={() => console.log("Login com Google")}
           >
-          
-            <Text style={styles.googleButtonText}>
-              Entrar com o Google
-            </Text>
+            <Text style={styles.googleButtonText}>Entrar com o Google</Text>
+            <Ionicons name="logo-google" size={24} color={colors.activeIcon} />
           </TouchableOpacity>
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>
-              Não tem uma conta?{" "}
-              <TouchableOpacity onPress={navigateToCadastro}>
-                <Text style={styles.link}>Crie aqui</Text>
-              </TouchableOpacity>
-            </Text>
+            <Text style={styles.linkText}>Não tem uma conta?</Text>
+            <TouchableOpacity onPress={navigateToCadastro}>
+              <Text style={styles.link}>{"Crie aqui"}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>

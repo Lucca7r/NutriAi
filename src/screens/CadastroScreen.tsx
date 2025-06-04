@@ -93,18 +93,16 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
             style={styles.googleButton}
             onPress={() => console.log("Cadastrar com Google")}
           >
-            {/* Você precisará adicionar o ícone do Google aqui */}
             <Text style={styles.googleButtonText}>
               Cadastre-se com o Google
             </Text>
+            <Ionicons name="logo-google" size={24} color={colors.activeIcon} />
           </TouchableOpacity>
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>
-              Já possui uma conta?{" "}
-              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                <Text style={styles.link}>Entre</Text>
-              </TouchableOpacity>
-            </Text>
+            <Text style={styles.linkText}>Já possui uma conta?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.link}>Entre</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>

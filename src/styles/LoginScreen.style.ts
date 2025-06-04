@@ -70,6 +70,7 @@ export const createLoginStyles = (colors: ThemeColors) =>
     },
     linkContainer: {
       marginTop: 20,
+      alignItems: "center",
     },
     linkText: {
       color: colors.textSecondary || colors.text,
