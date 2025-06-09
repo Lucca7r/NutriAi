@@ -20,7 +20,7 @@ export const createFormularioStyles = (colors: any) =>
       marginBottom: 12,
     },
     logoText: {
-      fontSize: 28,
+      fontSize: 36,
       fontFamily: "Poppins_700Bold_Italic",
       color: "#C8C9D2",
       marginLeft: 8,
@@ -95,6 +95,13 @@ export const createFormularioStyles = (colors: any) =>
       fontFamily: "Poppins_400Regular",
       color: "#C8C9D2",
       marginBottom: 6,
+      lineHeight: 24,
+    },
+    introText: {
+      fontSize: 20,
+      fontFamily: "Poppins_400Regular",
+      color: "#C8C9D2",
+      marginBottom: 20,
       lineHeight: 24,
     },
     input: {
@@ -178,6 +185,7 @@ export const createFormularioStyles = (colors: any) =>
     },
     button: {
       backgroundColor: "#D9D9D9",
+      fontFamily: "Poppins_400Regular",
       borderRadius: 12,
       paddingVertical: 16,
       paddingHorizontal: 32,
@@ -199,6 +207,7 @@ export const createFormularioStyles = (colors: any) =>
       elevation: 0,
     },
     buttonText: {
+      fontFamily: "Poppins_400Regular",
       fontSize: 18,
       fontWeight: "600",
       color: "#000000",

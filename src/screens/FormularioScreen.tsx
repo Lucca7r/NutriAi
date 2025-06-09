@@ -15,6 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { ProgressSteps, ProgressStep } from "react-native-progress-steps";
 import { useThemeColors } from "../context/ThemeContext";
 import { createFormularioStyles } from "../styles/FormularioScreen.style";
+import FormIcon from "../../assets/form.svg";
+import Logo from "../components/Logo";
 
 const secoes = [
   {
@@ -115,8 +117,8 @@ const secoes = [
     ],
   },
   {
-    id: "preferenciasRestricoes",
-    titulo: "Preferências e Restrições Alimentares",
+    id: "restricoes",
+    titulo: "Restrições e Preferências Alimentares",
     perguntas: [
       {
         chave: "restricoesAlimentares",
@@ -133,7 +135,8 @@ const secoes = [
       },
       {
         chave: "preferenciasAlimentares",
-        label: "Marque os alimentos que você gosta ou prefere incluir em sua dieta:",
+        label:
+          "Marque os alimentos que você gosta ou prefere incluir em sua dieta:",
         tipo: "checkbox",
         opcoes: [
           "Frutas",
@@ -156,7 +159,8 @@ const secoes = [
     perguntas: [
       {
         chave: "acompanhamentoIA",
-        label: "Você gostaria de receber recomendações automáticas com base em IA?",
+        label:
+          "Você gostaria de receber recomendações automáticas com base em IA?",
         tipo: "radio",
         opcoes: [
           "Sim, totalmente automático",
@@ -194,17 +198,71 @@ const secoes = [
   },
 ];
 
-
-
 const FormularioScreen = () => {
   const colors = useThemeColors();
   const styles = createFormularioStyles(colors);
 
+  const [formIniciado, setFormIniciado] = useState(false);
   const [respostas, setRespostas] = useState<{ [key: string]: any }>({});
+
+  const getRespostasFinal = () => {
+    const final = { ...respostas };
+
+    Object.keys(final).forEach((key) => {
+      const valor = final[key];
+
+      // Para checkbox: substitui "Outros/Outras" por texto digitado
+      if (Array.isArray(valor)) {
+        if (valor.includes("Outros") || valor.includes("Outras")) {
+          const textoOutro = final[`outros_${key}`];
+          final[key] = valor
+            .filter((item) => item !== "Outros" && item !== "Outras")
+            .concat(textoOutro ? [textoOutro] : []);
+          delete final[`outros_${key}`];
+        }
+      }
+
+      // Para radio: se a resposta for "Outro/Outros/Outras", substitui
+      if (["Outro", "Outros", "Outras"].includes(valor)) {
+        const textoOutro = final[`outros_${key}`];
+        if (textoOutro) {
+          final[key] = textoOutro;
+          delete final[`outros_${key}`];
+        }
+      }
+    });
+
+    return final;
+  };
 
   const handleResposta = (chave: string, valor: string | string[]) => {
     setRespostas((prev) => ({ ...prev, [chave]: valor }));
   };
+
+  if (!formIniciado) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Logo />
+          <View>
+            <View style={{ alignItems: "center", marginBottom: 24 }}>
+              <FormIcon width={400} height={400} />
+            </View>
+            <Text style={styles.introText}>
+              Responda algumas perguntas para ter uma experiência adaptada para
+              você!
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { marginBottom: 24 }]}
+              onPress={() => setFormIniciado(true)}
+            >
+              <Text style={styles.buttonText}>Vamos Começar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -213,10 +271,7 @@ const FormularioScreen = () => {
           style={styles.container}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={styles.logoContainer}>
-            <Ionicons name="leaf" size={32} color={"#C8C9D2"} />
-            <Text style={styles.logoText}>NutriAI</Text>
-          </View>
+          <Logo />
 
           <ProgressSteps
             completedStepIconColor={"#D9D9D9"}
@@ -228,14 +283,14 @@ const FormularioScreen = () => {
             activeStepNumColor={"#D9D9D9"}
             completedCheckColor={"#000000"}
             topOffset={10}
-            marginBottom={4}
+            marginBottom={12}
           >
             {secoes.map((secao, index) => (
               <ProgressStep
                 key={secao.id}
                 onSubmit={
                   index === secoes.length - 1
-                    ? () => console.log("Finalizado", respostas)
+                    ? () => console.log("Finalizado", getRespostasFinal())
                     : undefined
                 }
                 buttonNextText="Próximo"
@@ -275,7 +330,9 @@ const FormularioScreen = () => {
                           />
                         </View>
                       );
-                    } else if (pergunta.tipo === "radio" && pergunta.opcoes) {
+                    }
+
+                    if (pergunta.tipo === "radio" && pergunta.opcoes) {
                       return (
                         <View key={pergunta.chave} style={styles.inputGroup}>
                           <Text style={styles.label}>
@@ -301,12 +358,29 @@ const FormularioScreen = () => {
                               <Text style={styles.radioLabel}>{opcao}</Text>
                             </TouchableOpacity>
                           ))}
+
+                          {["Outro", "Outros", "Outras"].includes(
+                            respostas[pergunta.chave]
+                          ) && (
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Especifique..."
+                              placeholderTextColor={
+                                styles.inputPlaceholder.color
+                              }
+                              value={
+                                respostas[`outros_${pergunta.chave}`] || ""
+                              }
+                              onChangeText={(text) =>
+                                handleResposta(`outros_${pergunta.chave}`, text)
+                              }
+                            />
+                          )}
                         </View>
                       );
-                    } else if (
-                      pergunta.tipo === "checkbox" &&
-                      pergunta.opcoes
-                    ) {
+                    }
+
+                    if (pergunta.tipo === "checkbox" && pergunta.opcoes) {
                       const respostasAtuais = respostas[pergunta.chave] || [];
 
                       const toggleOpcao = (opcao: string) => {
@@ -343,22 +417,26 @@ const FormularioScreen = () => {
                             </TouchableOpacity>
                           ))}
 
-                          {respostasAtuais.includes("Outros") && (
+                          {(respostasAtuais.includes("Outros") ||
+                            respostasAtuais.includes("Outras")) && (
                             <TextInput
                               style={styles.input}
                               placeholder="Especifique..."
                               placeholderTextColor={
                                 styles.inputPlaceholder.color
                               }
-                              value={respostas["outrosPreferencias"] || ""}
+                              value={
+                                respostas[`outros_${pergunta.chave}`] || ""
+                              }
                               onChangeText={(text) =>
-                                handleResposta("outrosPreferencias", text)
+                                handleResposta(`outros_${pergunta.chave}`, text)
                               }
                             />
                           )}
                         </View>
                       );
                     }
+
                     return null;
                   })}
                 </ScrollView>
