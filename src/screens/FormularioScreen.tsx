@@ -54,6 +54,75 @@ const secoes = [
     ],
   },
   {
+    id: "atividadeFisica",
+    titulo: "Nível de Atividade Física",
+    perguntas: [
+      {
+        chave: "nivelAtividade",
+        label: "",
+        tipo: "radio",
+        opcoes: [
+          "Sedentário (sem exercícios regulares)",
+          "Levemente ativo (1–2x por semana)",
+          "Moderadamente ativo (3–4x por semana)",
+          "Muito ativo (5+ vezes por semana)",
+          "Atleta",
+        ],
+      },
+    ],
+  },
+  {
+    id: "frequenciaAlimentar",
+    titulo: "Frequência Alimentar",
+    perguntas: [
+      {
+        chave: "refeicoesPorDia",
+        label: "Quantas refeições você costuma fazer por dia?",
+        tipo: "radio",
+        opcoes: ["2", "3", "4", "5 ou mais"],
+      },
+    ],
+  },
+  {
+    id: "restricoes",
+    titulo: "Restrições ou Alergias Alimentares",
+    perguntas: [
+      {
+        chave: "restricoesAlimentares",
+        label: "Você possui alguma dessas restrições/alergias?",
+        tipo: "checkbox",
+        opcoes: [
+          "Lactose",
+          "Glúten",
+          "Oleaginosas (nozes, castanhas, amêndoas...)",
+          "Frutos do mar",
+          "Outras",
+          "Nenhuma",
+        ],
+      },
+    ],
+  },
+  {
+    id: "estiloAlimentar",
+    titulo: "Estilo Alimentar Preferido",
+    perguntas: [
+      {
+        chave: "estiloAlimentar",
+        label: "",
+        tipo: "radio",
+        opcoes: [
+          "Tradicional brasileira",
+          "Low Carb",
+          "Cetogênica (Keto)",
+          "Vegetariana",
+          "Vegana",
+          "Mediterrânea",
+          "Outro",
+        ],
+      },
+    ],
+  },
+  {
     id: "preferencias",
     titulo: "Preferências Alimentares",
     perguntas: [
@@ -77,8 +146,96 @@ const secoes = [
       },
     ],
   },
-
-  // Adicione as próximas seções conforme o questionário completo
+  {
+    id: "refeicoesFora",
+    titulo: "Refeições Fora de Casa",
+    perguntas: [
+      {
+        chave: "refeicoesFora",
+        label: "Você costuma fazer refeições fora de casa?",
+        tipo: "radio",
+        opcoes: ["Sim, frequentemente", "Às vezes", "Raramente", "Nunca"],
+      },
+    ],
+  },
+  {
+    id: "tempoPreparo",
+    titulo: "Tempo Disponível para Preparar Refeições",
+    perguntas: [
+      {
+        chave: "tempoPreparo",
+        label: "",
+        tipo: "radio",
+        opcoes: [
+          "Menos de 15 minutos",
+          "De 15 a 30 minutos",
+          "De 30 a 60 minutos",
+          "Mais de 1 hora",
+        ],
+      },
+    ],
+  },
+  {
+    id: "receitasCaseiras",
+    titulo: "Interesse em Receitas Caseiras",
+    perguntas: [
+      {
+        chave: "interesseReceitas",
+        label: "",
+        tipo: "radio",
+        opcoes: ["Sim", "Não"],
+      },
+    ],
+  },
+  {
+    id: "acompanhamento",
+    titulo: "Acompanhamento Nutricional",
+    perguntas: [
+      {
+        chave: "acompanhamentoIA",
+        label:
+          "Você gostaria de receber recomendações automáticas com base em IA?",
+        tipo: "radio",
+        opcoes: [
+          "Sim, totalmente automático",
+          "Sim, com validação de um nutricionista",
+          "Prefiro montar meu próprio plano",
+          "Ainda não sei",
+        ],
+      },
+    ],
+  },
+  {
+    id: "lembretes",
+    titulo: "Horários Preferidos para Receber Lembretes e Dicas",
+    perguntas: [
+      {
+        chave: "horarioLembretes",
+        label: "",
+        tipo: "radio",
+        opcoes: ["Manhã", "Tarde", "Noite", "Não quero receber notificações"],
+      },
+    ],
+  },
+  {
+    id: "temasInteresse",
+    titulo: "Temas de Interesse",
+    perguntas: [
+      {
+        chave: "temas",
+        label: "",
+        tipo: "checkbox",
+        opcoes: [
+          "Receitas práticas",
+          "Dicas de alimentação saudável",
+          "Planejamento de refeições",
+          "Dietas específicas",
+          "Desempenho físico/esportivo",
+          "Outros",
+        ],
+      },
+    ],
+  }
 ];
 
 const FormularioScreen = () => {
@@ -117,7 +274,7 @@ const FormularioScreen = () => {
           >
             {secoes.map((secao, index) => (
               <ProgressStep
-                key={secao.id}                
+                key={secao.id}
                 onSubmit={
                   index === secoes.length - 1
                     ? () => console.log("Finalizado", respostas)
@@ -126,8 +283,8 @@ const FormularioScreen = () => {
                 buttonNextText="Próximo"
                 buttonPreviousText="Voltar"
                 buttonFinishText="Finalizar"
-                buttonNextTextColor = "#000"
-                buttonFinishTextColor ="#000"
+                buttonNextTextColor="#000"
+                buttonFinishTextColor="#000"
                 buttonFillColor="#D9D9D9"
                 buttonBorderColor="#D9D9D9"
                 buttonPreviousTextColor="#D9D9D9"
