@@ -4,11 +4,12 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/poppins": "^0.4.0",
     "@expo/metro-runtime": "~5.0.4",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/native": "^7.1.6",
@@ -16,6 +17,7 @@
     "@react-navigation/stack": "^7.3.2",
     "axios": "^1.8.4",
     "expo": "^53.0.0",
+    "expo-font": "~13.3.1",
     "expo-status-bar": "~2.2.3",
     "nutriai": "file:",
     "openai": "^4.103.0",
@@ -25,6 +27,7 @@
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-paper": "^5.13.1",
+    "react-native-progress-steps": "^2.0.3",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",

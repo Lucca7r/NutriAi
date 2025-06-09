@@ -1,10 +1,12 @@
 import React from "react";
+import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_700Bold } from "@expo-google-fonts/poppins";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import CadastroScreen from "../screens/CadastroScreen";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import FormularioScreen from "../screens/FormularioScreen";
 import { ChatScreen } from "../screens/ChatScreen";
 import { FavoritesScreen } from "../screens/FavoritesScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -16,7 +18,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Formulario">
         <Stack.Screen
           name="Login"
           component={LoginScreen}
@@ -32,6 +34,12 @@ export default function AppNavigator() {
           component={BottomTabs}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Formulario"
+          component={FormularioScreen}
+          options={{ headerShown: false }}
+        />
+
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />

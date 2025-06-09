@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
-import { OPENAI_API_KEY } from '@env';
+import { EXPO_PUBLIC_OPENAI_API_KEY } from '@env';
 
 const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY,
+  apiKey: EXPO_PUBLIC_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true, 
 });
 

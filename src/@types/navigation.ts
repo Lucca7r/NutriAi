@@ -7,4 +7,5 @@ export type RootStackParamList = {
   Favorites: undefined;
   Main: undefined; 
   Login?: undefined;
+  Formulario?: undefined;
 };
