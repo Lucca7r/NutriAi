@@ -35,12 +35,12 @@ const secoes = [
     ],
   },
   {
-    id: "objetivo",
-    titulo: "Objetivo Principal com o App",
+    id: "objetivosEstiloVida",
+    titulo: "Objetivos e Estilo de Vida",
     perguntas: [
       {
         chave: "objetivo",
-        label: "",
+        label: "Objetivo principal com o app",
         tipo: "radio",
         opcoes: [
           "Emagrecimento",
@@ -51,15 +51,9 @@ const secoes = [
           "Outros",
         ],
       },
-    ],
-  },
-  {
-    id: "atividadeFisica",
-    titulo: "Nível de Atividade Física",
-    perguntas: [
       {
         chave: "nivelAtividade",
-        label: "",
+        label: "Nível de atividade física",
         tipo: "radio",
         opcoes: [
           "Sedentário (sem exercícios regulares)",
@@ -69,46 +63,9 @@ const secoes = [
           "Atleta",
         ],
       },
-    ],
-  },
-  {
-    id: "frequenciaAlimentar",
-    titulo: "Frequência Alimentar",
-    perguntas: [
-      {
-        chave: "refeicoesPorDia",
-        label: "Quantas refeições você costuma fazer por dia?",
-        tipo: "radio",
-        opcoes: ["2", "3", "4", "5 ou mais"],
-      },
-    ],
-  },
-  {
-    id: "restricoes",
-    titulo: "Restrições ou Alergias Alimentares",
-    perguntas: [
-      {
-        chave: "restricoesAlimentares",
-        label: "Você possui alguma dessas restrições/alergias?",
-        tipo: "checkbox",
-        opcoes: [
-          "Lactose",
-          "Glúten",
-          "Oleaginosas (nozes, castanhas, amêndoas...)",
-          "Frutos do mar",
-          "Outras",
-          "Nenhuma",
-        ],
-      },
-    ],
-  },
-  {
-    id: "estiloAlimentar",
-    titulo: "Estilo Alimentar Preferido",
-    perguntas: [
       {
         chave: "estiloAlimentar",
-        label: "",
+        label: "Estilo alimentar preferido",
         tipo: "radio",
         opcoes: [
           "Tradicional brasileira",
@@ -123,13 +80,60 @@ const secoes = [
     ],
   },
   {
-    id: "preferencias",
-    titulo: "Preferências Alimentares",
+    id: "habitosAlimentares",
+    titulo: "Hábitos Alimentares",
     perguntas: [
       {
+        chave: "refeicoesPorDia",
+        label: "Quantas refeições você costuma fazer por dia?",
+        tipo: "radio",
+        opcoes: ["2", "3", "4", "5 ou mais"],
+      },
+      {
+        chave: "refeicoesFora",
+        label: "Você costuma fazer refeições fora de casa?",
+        tipo: "radio",
+        opcoes: ["Sim, frequentemente", "Às vezes", "Raramente", "Nunca"],
+      },
+      {
+        chave: "tempoPreparo",
+        label: "Tempo disponível para preparar refeições",
+        tipo: "radio",
+        opcoes: [
+          "Menos de 15 minutos",
+          "De 15 a 30 minutos",
+          "De 30 a 60 minutos",
+          "Mais de 1 hora",
+        ],
+      },
+      {
+        chave: "interesseReceitas",
+        label: "Tem interesse em receitas caseiras?",
+        tipo: "radio",
+        opcoes: ["Sim", "Não"],
+      },
+    ],
+  },
+  {
+    id: "preferenciasRestricoes",
+    titulo: "Preferências e Restrições Alimentares",
+    perguntas: [
+      {
+        chave: "restricoesAlimentares",
+        label: "Você possui alguma dessas restrições/alergias?",
+        tipo: "checkbox",
+        opcoes: [
+          "Lactose",
+          "Glúten",
+          "Oleaginosas (nozes, castanhas, amêndoas...)",
+          "Frutos do mar",
+          "Outras",
+          "Nenhuma",
+        ],
+      },
+      {
         chave: "preferenciasAlimentares",
-        label:
-          "Marque os alimentos que você gosta ou prefere incluir em sua dieta:",
+        label: "Marque os alimentos que você gosta ou prefere incluir em sua dieta:",
         tipo: "checkbox",
         opcoes: [
           "Frutas",
@@ -147,54 +151,12 @@ const secoes = [
     ],
   },
   {
-    id: "refeicoesFora",
-    titulo: "Refeições Fora de Casa",
-    perguntas: [
-      {
-        chave: "refeicoesFora",
-        label: "Você costuma fazer refeições fora de casa?",
-        tipo: "radio",
-        opcoes: ["Sim, frequentemente", "Às vezes", "Raramente", "Nunca"],
-      },
-    ],
-  },
-  {
-    id: "tempoPreparo",
-    titulo: "Tempo Disponível para Preparar Refeições",
-    perguntas: [
-      {
-        chave: "tempoPreparo",
-        label: "",
-        tipo: "radio",
-        opcoes: [
-          "Menos de 15 minutos",
-          "De 15 a 30 minutos",
-          "De 30 a 60 minutos",
-          "Mais de 1 hora",
-        ],
-      },
-    ],
-  },
-  {
-    id: "receitasCaseiras",
-    titulo: "Interesse em Receitas Caseiras",
-    perguntas: [
-      {
-        chave: "interesseReceitas",
-        label: "",
-        tipo: "radio",
-        opcoes: ["Sim", "Não"],
-      },
-    ],
-  },
-  {
-    id: "acompanhamento",
-    titulo: "Acompanhamento Nutricional",
+    id: "personalizacaoApp",
+    titulo: "Personalização do App",
     perguntas: [
       {
         chave: "acompanhamentoIA",
-        label:
-          "Você gostaria de receber recomendações automáticas com base em IA?",
+        label: "Você gostaria de receber recomendações automáticas com base em IA?",
         tipo: "radio",
         opcoes: [
           "Sim, totalmente automático",
@@ -203,15 +165,9 @@ const secoes = [
           "Ainda não sei",
         ],
       },
-    ],
-  },
-  {
-    id: "lembretes",
-    titulo: "Horários Preferidos para Receber Lembretes e Dicas",
-    perguntas: [
       {
         chave: "horarioLembretes",
-        label: "",
+        label: "Horários preferidos para receber lembretes e dicas",
         tipo: "radio",
         opcoes: ["Manhã", "Tarde", "Noite", "Não quero receber notificações"],
       },
@@ -223,7 +179,7 @@ const secoes = [
     perguntas: [
       {
         chave: "temas",
-        label: "",
+        label: "Quais temas são do seu interesse?",
         tipo: "checkbox",
         opcoes: [
           "Receitas práticas",
@@ -235,8 +191,10 @@ const secoes = [
         ],
       },
     ],
-  }
+  },
 ];
+
+
 
 const FormularioScreen = () => {
   const colors = useThemeColors();

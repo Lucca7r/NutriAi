@@ -115,7 +115,7 @@ export const createFormularioStyles = (colors: any) =>
       borderWidth: 2,
     },
     inputGroup: {
-      marginBottom: 12,
+      marginBottom: 24,
     },
     inputPlaceholder: {
       color: "#53545D",
