@@ -5,26 +5,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
   Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createCadastroStyles } from "../styles/CadastroScreen.style";
 
+// Importações de Navegação
 import type { StackNavigationProp } from "@react-navigation/stack";
+import type { RootStackParamList } from "../@types/navigation";
+import { auth, db } from '../services/firebaseConfig';
 
-type RootStackParamList = {
-  Login: undefined;
-};
-
-type CadastroScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Login"
->;
+type CadastroScreenNavigationProp = StackNavigationProp<RootStackParamList, "Login">;
 
 interface CadastroScreenProps {
   navigation: CadastroScreenNavigationProp;
@@ -37,6 +30,29 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  
+const handleCriarConta = async () => {
+  if (senha !== confirmarSenha) {
+    alert("As senhas não conferem!");
+    return;
+  }
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
+    const user = userCredential.user;
+
+    if (user) {
+      // A sintaxe para Firestore 'compat' é um pouco diferente
+      await db.collection("users").doc(user.uid).set({
+        nome: nome,
+        email: user.email,
+        createdAt: new Date(),
+      });
+    }
+  } catch (error: any) {
+    alert(`Erro ao criar conta: ${error.message}`);
+  }
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -78,15 +94,7 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
             onChangeText={setConfirmarSenha}
             secureTextEntry
           />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Main" }],
-              });
-            }}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleCriarConta}>
             <Text style={styles.buttonText}>Criar Conta</Text>
           </TouchableOpacity>
           <TouchableOpacity

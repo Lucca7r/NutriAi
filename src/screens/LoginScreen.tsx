@@ -11,14 +11,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createLoginStyles } from "../styles/LoginScreen.style";
-
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RootStackParamList } from "../@types/navigation";
 
-type LoginScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Cadastro" // Or "Main" if login is successful
->;
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebaseConfig';
+
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "Cadastro">;
 
 interface LoginScreenProps {
   navigation: LoginScreenNavigationProp;
@@ -30,18 +29,23 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  const handleLogin = () => {
-    console.log("Email:", email, "Senha:", senha);
-
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Main" }],
-    });
-  };
+const handleLogin = async () => {
+  if (!email || !senha) {
+    alert("Por favor, preencha e-mail e senha.");
+    return;
+  }
+  try {
+    await auth.signInWithEmailAndPassword(email, senha);
+  } catch (error: any) {
+    alert(`Erro ao fazer login: ${error.message}`);
+  }
+};
 
   const navigateToCadastro = () => {
     navigation.navigate("Cadastro");
   };
+
+
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
