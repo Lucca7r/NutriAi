@@ -1,9 +1,7 @@
-// src/services/firebaseConfig.ts
-
-// Passo 1: Importar as bibliotecas de compatibilidade
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
-// Se for usar o banco de dados depois, você adicionaria: import 'firebase/compat/firestore';
+import 'firebase/compat/firestore';
+
 
 import {
   FIREBASE_API_KEY,
@@ -30,3 +28,4 @@ if (!firebase.apps.length) {
 
 // Passo 3: Exportar o serviço de autenticação no estilo compat
 export const FIREBASE_AUTH = firebase.auth();
+export const FIREBASE_DB = firebase.firestore();
