@@ -12,6 +12,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createLoginStyles } from "../styles/LoginScreen.style";
 
+import { Alert } from "react-native"; // Adicione o Alert
+
+import { FIREBASE_AUTH } from "../services/firebaseConfig";
+
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RootStackParamList } from "../@types/navigation";
 
@@ -29,14 +33,28 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const styles = createLoginStyles(colors);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log("Email:", email, "Senha:", senha);
+  const handleLogin = async () => {
+    if (email === "" || senha === "") {
+      Alert.alert("Erro", "Preencha e-mail e senha.");
+      return;
+    }
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Main" }],
-    });
+    setIsLoading(true);
+    try {
+      // SINTAXE NOVA (estilo v8)
+      const response = await FIREBASE_AUTH.signInWithEmailAndPassword(
+        email,
+        senha
+      );
+      console.log("Login realizado com sucesso!", response);
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Erro no Login", "E-mail ou senha inválidos.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const navigateToCadastro = () => {

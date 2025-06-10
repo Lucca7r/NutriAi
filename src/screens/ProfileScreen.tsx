@@ -12,6 +12,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../@types/navigation';
 
+import { FIREBASE_AUTH } from '../services/firebaseConfig';
+import { Alert } from 'react-native';
+
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useTheme();
   const colors = useThemeColors();
@@ -19,12 +22,15 @@ export default function ProfileScreen() {
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleLogout = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  };
+const handleLogout = async () => {
+    try {
+      // SINTAXE NOVA (estilo v8)
+      await FIREBASE_AUTH.signOut();
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível sair da conta.");
+    }
+}
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
