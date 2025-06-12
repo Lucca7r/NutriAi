@@ -15,6 +15,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createCadastroStyles } from "../styles/CadastroScreen.style";
 
+import { Alert } from "react-native"; 
+import { FIREBASE_AUTH, FIREBASE_DB } from '../services/firebaseConfig'; 
+import firebase from 'firebase/compat/app';
+
 import type { StackNavigationProp } from "@react-navigation/stack";
 
 type RootStackParamList = {
@@ -37,6 +41,44 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCadastro = async () => {
+    if (senha !== confirmarSenha) {
+      Alert.alert("Erro", "As senhas não conferem.");
+      return;
+    }
+    if (email === "" || senha === "") {
+      Alert.alert("Erro", "Preencha e-mail e senha.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Cria o usuário no Firebase Auth
+      const response = await FIREBASE_AUTH.createUserWithEmailAndPassword(email, senha);
+      
+      // Se a criação no Auth deu certo, o response.user conterá os dados do novo usuário
+      if (response.user) {
+        const uid = response.user.uid;
+        
+        // Agora, salve os dados no Firestore
+        await FIREBASE_DB.collection('users').doc(uid).set({
+          name: nome,
+          email: email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
+        console.log('Usuário criado e dados salvos no Firestore!');
+      }
+
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Erro no Cadastro', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -80,14 +122,12 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
           />
           <TouchableOpacity
             style={styles.button}
-            onPress={() => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Main" }],
-              });
-            }}
+            onPress={handleCadastro} // Use a nova função aqui
+            disabled={isLoading} // Desabilita o botão durante o carregamento
           >
-            <Text style={styles.buttonText}>Criar Conta</Text>
+            <Text style={styles.buttonText}>
+              {isLoading ? "Criando..." : "Criar Conta"}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.googleButton}

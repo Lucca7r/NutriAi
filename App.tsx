@@ -1,7 +1,9 @@
 // App.tsx
-import React from "react";
-import AppNavigator from "./src/navigation";
-import { ThemeProvider } from "./src/context/ThemeContext";
+import React from 'react';
+import AppNavigator from './src/navigation';
+import { ThemeProvider } from './src/context/ThemeContext';
+import { AuthProvider } from './src/context/AuthContext'; // Importe o AuthProvider
+// App.tsx
 import {
   useFonts,
   Poppins_400Regular,
@@ -33,8 +35,10 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
-      <AppNavigator />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <AppNavigator />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

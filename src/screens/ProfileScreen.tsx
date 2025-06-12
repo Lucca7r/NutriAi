@@ -8,26 +8,42 @@ import {
 } from 'react-native';
 import { useTheme, useThemeColors } from '../context/ThemeContext';
 import ProfileHeader from '../components/ProfileHeader';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../@types/navigation';
+
+import { FIREBASE_AUTH } from '../services/firebaseConfig';
+import { Alert } from 'react-native';
 
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useTheme();
   const colors = useThemeColors();
   const isDark = theme === 'dark';
 
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+const handleLogout = async () => {
+    try {
+      // SINTAXE NOVA (estilo v8)
+      await FIREBASE_AUTH.signOut();
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível sair da conta.");
+    }
+}
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ProfileHeader />
-
       <View style={styles.section}>
         <Text style={[styles.label, { color: colors.text }]}>Modo Escuro</Text>
         <Switch value={isDark} onValueChange={toggleTheme} />
       </View>
-
       <View style={styles.section}>
         <TouchableOpacity>
           <Text style={[styles.link, { color: colors.icon }]}>Editar Perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleLogout}>
           <Text style={[styles.link, { color: colors.icon }]}>Sair da Conta</Text>
         </TouchableOpacity>
       </View>

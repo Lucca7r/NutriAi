@@ -13,5 +13,5 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": false
   },
-  "include": ["src", "@types"]
+  "include": ["src", "src/@types"]
 }

@@ -88,7 +88,7 @@ export const ChatScreen = () => {
         renderItem={renderItem}
         contentContainerStyle={styles.chat}
       />
-      <View style={[styles.inputWrapper]}>
+      <View style={[styles.inputWrapper, {borderColor:colors.text}]}>
         <TextInput
           placeholder="Digite sua dúvida..."
           placeholderTextColor={colors.iconInactive}
@@ -98,6 +98,7 @@ export const ChatScreen = () => {
           ]}
           value={input}
           onChangeText={setInput}
+          keyboardAppearance= {colors.background==='#1a1a1a'? 'dark' : 'light'}
         />
         <TouchableOpacity onPress={sendMessage} style={styles.sendInlineButton}>
           <Text style={{ color: "#fff" }}>➤</Text>
