@@ -11,6 +11,10 @@ import {
   Keyboard,
   ScrollView,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; // 👈 IMPORTAR ESSE
+import { RootStackParamList } from "../@types/navigation";
+import { FIREBASE_DB, FIREBASE_AUTH } from '../services/firebaseConfig';
 import { Ionicons } from "@expo/vector-icons";
 import { ProgressSteps, ProgressStep } from "react-native-progress-steps";
 import { useThemeColors } from "../context/ThemeContext";
@@ -201,6 +205,7 @@ const secoes = [
 const FormularioScreen = () => {
   const colors = useThemeColors();
   const styles = createFormularioStyles(colors);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [formIniciado, setFormIniciado] = useState(false);
   const [respostas, setRespostas] = useState<{ [key: string]: any }>({});
@@ -290,7 +295,19 @@ const FormularioScreen = () => {
                 key={secao.id}
                 onSubmit={
                   index === secoes.length - 1
-                    ? () => console.log("Finalizado", getRespostasFinal())
+                    ? async () => {
+                        const uid = FIREBASE_AUTH.currentUser?.uid;
+
+                        if (uid) {
+                          await FIREBASE_DB.collection("users")
+                            .doc(uid)
+                            .update({
+                              formularioConcluido: true,
+                            });
+                        }
+
+                        navigation.replace("Main");
+                      }
                     : undefined
                 }
                 buttonNextText="Próximo"

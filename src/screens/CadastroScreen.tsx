@@ -15,14 +15,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createCadastroStyles } from "../styles/CadastroScreen.style";
 
-import { Alert } from "react-native"; 
-import { FIREBASE_AUTH, FIREBASE_DB } from '../services/firebaseConfig'; 
-import firebase from 'firebase/compat/app';
+import { Alert } from "react-native";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../services/firebaseConfig";
+import firebase from "firebase/compat/app";
 
 import type { StackNavigationProp } from "@react-navigation/stack";
 
 type RootStackParamList = {
   Login: undefined;
+  Formulario: undefined;
 };
 
 type CadastroScreenNavigationProp = StackNavigationProp<
@@ -55,30 +56,31 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
 
     setIsLoading(true);
     try {
-      // Cria o usuário no Firebase Auth
-      const response = await FIREBASE_AUTH.createUserWithEmailAndPassword(email, senha);
-      
-      // Se a criação no Auth deu certo, o response.user conterá os dados do novo usuário
+      const response = await FIREBASE_AUTH.createUserWithEmailAndPassword(
+        email,
+        senha
+      );
+
       if (response.user) {
         const uid = response.user.uid;
-        
-        // Agora, salve os dados no Firestore
-        await FIREBASE_DB.collection('users').doc(uid).set({
+
+        await FIREBASE_DB.collection("users").doc(uid).set({
           name: nome,
           email: email,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          formularioConcluido: false,
         });
 
-        console.log('Usuário criado e dados salvos no Firestore!');
-      }
+        console.log("Usuário criado e dados salvos no Firestore!");
 
+      }
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Erro no Cadastro', error.message);
+      Alert.alert("Erro no Cadastro", error.message);
     } finally {
       setIsLoading(false);
     }
-};
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

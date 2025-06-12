@@ -11,6 +11,7 @@ export interface UserProfile {
   name: string;
   email: string;
   createdAt: firebase.firestore.Timestamp;
+  formularioConcluido?: boolean;
   // futuramente: avatarUrl, planoAlimentar, etc.
 }
 

@@ -1,26 +1,32 @@
 // src/navigation/index.tsx
-import React from 'react';
-import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_700Bold } from "@expo-google-fonts/poppins";
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, View } from 'react-native';
+import React from "react";
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_700Bold,
+} from "@expo-google-fonts/poppins";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { ActivityIndicator, View } from "react-native";
 
-import CadastroScreen from '../screens/CadastroScreen';
-import LoginScreen from '../screens/LoginScreen';
+import CadastroScreen from "../screens/CadastroScreen";
+import LoginScreen from "../screens/LoginScreen";
 import FormularioScreen from "../screens/FormularioScreen";
-import BottomTabs from './BottomTabs';
-import { useAuth } from '../context/AuthContext'; // Importe o hook
-import { RootStackParamList } from '../@types/navigation';
+import BottomTabs from "./BottomTabs";
+import { useAuth } from "../context/AuthContext"; // Importe o hook
+import { RootStackParamList } from "../@types/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const { user, loading } = useAuth(); // Use o contexto
+  const { user, loading, profile } = useAuth(); // Use o contexto
 
   // Mostra um indicador de carregamento enquanto o Firebase verifica a autenticação
-  if (loading) {
+  if (loading || (user && !profile)) {
+    // ainda está carregando perfil ou estado de autenticação
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -28,16 +34,29 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        initialRouteName={
+          user
+            ? profile?.formularioConcluido
+              ? "Main"
+              : "Formulario"
+            : "Login"
+        }
+      >
         {user ? (
-          // Se o usuário estiver logado, a tela principal é o BottomTabs
-          <Stack.Screen
-            name="Main"
-            component={BottomTabs}
-            options={{ headerShown: false }}
-          />
+          <>
+            <Stack.Screen
+              name="Formulario"
+              component={FormularioScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Main"
+              component={BottomTabs}
+              options={{ headerShown: false }}
+            />
+          </>
         ) : (
-          // Se não houver usuário, mostre as telas de Formulario e Cadastro
           <>
             <Stack.Screen
               name="Login"
@@ -49,13 +68,7 @@ export default function AppNavigator() {
               component={CadastroScreen}
               options={{ headerShown: false }}
             />
-          <Stack.Screen
-          name="Formulario"
-          component={FormularioScreen}
-          options={{ headerShown: false }}
-        />
-
-        </>
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
