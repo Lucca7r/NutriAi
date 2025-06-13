@@ -14,13 +14,15 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"; // 👈 IMPORTAR ESSE
 import { RootStackParamList } from "../@types/navigation";
-import { FIREBASE_DB, FIREBASE_AUTH } from '../services/firebaseConfig';
+import { FIREBASE_DB, FIREBASE_AUTH } from "../services/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { ProgressSteps, ProgressStep } from "react-native-progress-steps";
 import { useThemeColors } from "../context/ThemeContext";
 import { createFormularioStyles } from "../styles/FormularioScreen.style";
 import FormIcon from "../../assets/form.svg";
 import Logo from "../components/Logo";
+
+import { useAuth } from "../context/AuthContext";
 
 const secoes = [
   {
@@ -205,7 +207,9 @@ const secoes = [
 const FormularioScreen = () => {
   const colors = useThemeColors();
   const styles = createFormularioStyles(colors);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { reloadProfile } = useAuth();
 
   const [formIniciado, setFormIniciado] = useState(false);
   const [respostas, setRespostas] = useState<{ [key: string]: any }>({});
@@ -297,16 +301,33 @@ const FormularioScreen = () => {
                   index === secoes.length - 1
                     ? async () => {
                         const uid = FIREBASE_AUTH.currentUser?.uid;
+                        const respostasFinal = getRespostasFinal();
 
                         if (uid) {
-                          await FIREBASE_DB.collection("users")
-                            .doc(uid)
-                            .update({
-                              formularioConcluido: true,
-                            });
-                        }
+                          try {
+                            // Salva as respostas no Firestore
+                            await FIREBASE_DB.collection("formResponses")
+                              .doc(uid)
+                              .set(respostasFinal, { merge: true });
 
-                        navigation.replace("Main");
+                            // Atualiza o status do formulário do usuário
+                            await FIREBASE_DB.collection("users")
+                              .doc(uid)
+                              .update({
+                                formularioConcluido: true,
+                                formResponses: respostasFinal,
+                              });
+
+                            await reloadProfile();
+
+                            navigation.replace("Main");
+                          } catch (error) {
+                            console.error("Erro ao salvar formulário:", error);
+                            alert(
+                              "Houve um erro ao salvar suas respostas. Tente novamente."
+                            );
+                          }
+                        }
                       }
                     : undefined
                 }

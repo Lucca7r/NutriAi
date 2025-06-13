@@ -1,8 +1,14 @@
 // src/context/AuthContext.tsx
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { FIREBASE_AUTH, FIREBASE_DB } from '../services/firebaseConfig'; // Importe o DB
-import firebase from 'firebase/compat/app';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../services/firebaseConfig"; // Importe o DB
+import firebase from "firebase/compat/app";
 
 type User = firebase.User;
 
@@ -17,55 +23,62 @@ export interface UserProfile {
 
 interface AuthContextData {
   user: User | null;
-  profile: UserProfile | null; // Adicione o perfil do usuário ao contexto
+  profile: UserProfile | null;
   loading: boolean;
+  reloadProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null); // Crie o estado para o perfil
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = FIREBASE_AUTH.onAuthStateChanged(async (authenticatedUser) => {
-      setUser(authenticatedUser);
+  const fetchProfile = async (uid: string) => {
+    const userDocRef = FIREBASE_DB.collection("users").doc(uid);
+    const doc = await userDocRef.get();
 
-      // Se o usuário fez login, busque os dados dele no Firestore
-      if (authenticatedUser) {
-        const userDocRef = FIREBASE_DB.collection('users').doc(authenticatedUser.uid);
-        const doc = await userDocRef.get();
-        
-        if (doc.exists) {
-          setProfile(doc.data() as UserProfile);
+    if (doc.exists) {
+      setProfile(doc.data() as UserProfile);
+    } else {
+      console.log("Documento do usuário não encontrado no Firestore.");
+      setProfile(null);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = FIREBASE_AUTH.onAuthStateChanged(
+      async (authenticatedUser) => {
+        setUser(authenticatedUser);
+        if (authenticatedUser) {
+          await fetchProfile(authenticatedUser.uid);
         } else {
-          console.log("Documento do usuário não encontrado no Firestore.");
           setProfile(null);
         }
-      } else {
-       
-        setProfile(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
-
+    );
     return unsubscribe;
   }, []);
 
+  const reloadProfile = async () => {
+    if (user) {
+      await fetchProfile(user.uid);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading }}>
+    <AuthContext.Provider value={{ user, profile, loading, reloadProfile }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-    // ... (o hook continua igual)
-    const context = useContext(AuthContext);
-    if (!context) {
-      throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+  }
+  return context;
 };
