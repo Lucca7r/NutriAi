@@ -1,3 +1,5 @@
+// src/screens/ChatScreen.tsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -7,11 +9,11 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext"; 
 import { sendMessageToAI } from "../services/openaiService";
-
-
 
 import styles from "../styles/ChatScreen.style";
 interface Message {
@@ -22,11 +24,14 @@ interface Message {
 
 export const ChatScreen = () => {
   const colors = useThemeColors();
+  const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [loadingAI, setLoadingAI] = useState(false);
 
   const sendMessage = async () => {
-    if (input.trim() === "") return;
+    // Impede o envio de múltiplas mensagens enquanto uma está sendo processada
+    if (input.trim() === "" || loadingAI) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -36,10 +41,10 @@ export const ChatScreen = () => {
 
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
+    setLoadingAI(true);
 
-    // Chama a API e adiciona a resposta do bot
     try {
-      const responseText = await sendMessageToAI(input);
+      const responseText = await sendMessageToAI(input, profile);
 
       setMessages((prev) => [
         ...prev,
@@ -58,6 +63,8 @@ export const ChatScreen = () => {
           sender: "bot",
         },
       ]);
+    } finally {
+      setLoadingAI(false);
     }
   };
 
@@ -68,11 +75,13 @@ export const ChatScreen = () => {
         {
           alignSelf: item.sender === "user" ? "flex-end" : "flex-start",
           backgroundColor:
-            item.sender === "user" ? colors.iconBackground : colors.tabBar,
+            item.sender === "user" ? colors.primary : colors.iconBackground,
         },
       ]}
     >
-      <Text style={{ color: colors.text }}>{item.text}</Text>
+      <Text style={{ color: item.sender === "user" ? "#FFFFFF" : colors.text }}>
+        {item.text}
+      </Text>
     </View>
   );
 
@@ -80,7 +89,7 @@ export const ChatScreen = () => {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={100} // ajuste conforme necessário para não sobrepor o tabBar
+      keyboardVerticalOffset={100}
     >
       <FlatList
         data={messages}
@@ -88,7 +97,7 @@ export const ChatScreen = () => {
         renderItem={renderItem}
         contentContainerStyle={styles.chat}
       />
-      <View style={[styles.inputWrapper, {borderColor:colors.text}]}>
+      <View style={[styles.inputWrapper, { borderColor: colors.text }]}>
         <TextInput
           placeholder="Digite sua dúvida..."
           placeholderTextColor={colors.iconInactive}
@@ -98,10 +107,21 @@ export const ChatScreen = () => {
           ]}
           value={input}
           onChangeText={setInput}
-          keyboardAppearance= {colors.background==='#1a1a1a'? 'dark' : 'light'}
+          editable={!loadingAI}
+          keyboardAppearance={
+            colors.background === "#1a1a1a" ? "dark" : "light"
+          }
         />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendInlineButton}>
-          <Text style={{ color: "#fff" }}>➤</Text>
+        <TouchableOpacity
+          onPress={sendMessage}
+          style={styles.sendInlineButton}
+          disabled={loadingAI}
+        >
+          {loadingAI ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={{ color: "#fff" }}>➤</Text>
+          )}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
