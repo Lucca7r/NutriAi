@@ -27,11 +27,13 @@ export default function WeightChart() {
     const unsubscribe = FIREBASE_DB.collection('users')
       .doc(user.uid)
       .collection('weightHistory')
-      .orderBy('date', 'asc') // Ordena por data para a linha do gráfico ficar correta
+      .orderBy('date', 'asc')
       .onSnapshot(querySnapshot => {
         const data: WeightData[] = [];
         querySnapshot.forEach(doc => {
-          const weightEntry = doc.data() as { weight: number, date: firebase.firestore.Timestamp };
+          const weightEntry = doc.data() as { weight: number, date: firebase.firestore.Timestamp | null };
+
+          if (!weightEntry.date) return; 
           data.push({
             value: weightEntry.weight,
             date: weightEntry.date.toDate().toISOString(), // Data completa para tooltip, etc.
