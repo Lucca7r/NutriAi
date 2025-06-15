@@ -14,7 +14,7 @@ import { signOut } from 'firebase/auth';
 import { FIREBASE_AUTH } from '../services/firebaseConfig';
 import { Alert } from 'react-native';
 
-import WeightChart from '../components/WeightChart';
+
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 
@@ -47,8 +47,7 @@ export default function ProfileScreen() {
       
       <ProfileHeader />
 
-      {/* O componente do gráfico agora é totalmente independente */}
-      <WeightChart />
+      
 
       <View style={styles.section}>
         <Text style={[styles.label, { color: colors.text }]}>Modo Escuro</Text>

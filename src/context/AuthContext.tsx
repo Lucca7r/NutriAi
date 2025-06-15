@@ -19,6 +19,12 @@ export interface UserProfile {
   createdAt: firebase.firestore.Timestamp;
   formularioConcluido?: boolean;
   formResponses?: Record<string, any>;
+  dailyCalorieGoal?: number;
+
+  cachedTips?: {
+    tips: string[];
+    generatedAt: firebase.firestore.Timestamp;
+  };
 }
 
 interface AuthContextData {
@@ -42,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (doc.exists) {
       setProfile(doc.data() as UserProfile);
       console.log("--- PERFIL CARREGADO DO FIRESTORE ---", doc.data());
-        setProfile(doc.data() as UserProfile);
+      setProfile(doc.data() as UserProfile);
     } else {
       console.log("Documento do usuário não encontrado no Firestore.");
       setProfile(null);

@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   modalView: { margin: 20, borderRadius: 20, padding: 35, alignItems: 'center', elevation: 5 },
   modalTitle: { fontSize: 20, marginBottom: 15 },
   input: {
-    height: 50,
+    height: 40,
     width: 200,
     marginVertical: 10,
     borderWidth: 1,
