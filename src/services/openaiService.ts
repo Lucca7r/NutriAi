@@ -1,5 +1,3 @@
-// src/services/openaiService.ts
-
 import OpenAI from "openai";
 import { OPENAI_API_KEY } from "@env";
 import { UserProfile } from "../context/AuthContext";
@@ -10,8 +8,48 @@ const openai = new OpenAI({
 });
 
 /**
+ * Estima as calorias de uma refeição baseada na sua descrição.
+ * @param mealDescription A descrição da comida (ex: "2 ovos mexidos e uma banana").
+ * @returns Uma promessa com o número estimado de calorias.
+ */
+
+export const estimateCaloriesFromText = async (
+  mealDescription: string
+): Promise<number> => {
+  const prompt = `
+    Analise a seguinte descrição de uma refeição e retorne apenas o número total de calorias estimadas.
+    Sua resposta deve conter SOMENTE o número, sem texto adicional, sem "kcal" ou "calorias".
+    Exemplo: se a estimativa for 350, sua resposta deve ser exatamente "350".
+    Se a descrição não parecer uma comida ou for muito vaga, retorne "0".
+
+    Descrição da refeição: "${mealDescription}"
+  `;
+
+  try {
+    const response = await openai.responses.create({
+      model: "gpt-4o-mini", // Continua usando o modelo econômico
+      input: prompt,
+    });
+
+    const resultText = response.output_text?.trim() ?? "0";
+    const calories = parseInt(resultText, 10);
+
+    if (isNaN(calories)) {
+      console.error("A IA não retornou um número válido:", resultText);
+      return 0;
+    }
+
+    return calories;
+  } catch (error) {
+    console.error("Erro ao estimar calorias:", error);
+    return 0;
+  }
+};
+
+/**
  * @param userProfile - O perfil do usuário contendo respostas do formulário.
  */
+
 function buildSystemMessage(userProfile: UserProfile | null): string {
   let systemMessage = `
 Você é o NutriAI, um assistente virtual especializado em nutrição, dietas, receitas saudáveis e musculação, com foco principal em nutrição.
@@ -56,7 +94,7 @@ ${message}
 
   try {
     const response = await openai.responses.create({
-      model: "gpt-4.1-mini", //usa o modelo barato
+      model: "gpt-4o-mini", //usa o modelo barato
       input: prompt,
     });
 
@@ -64,5 +102,60 @@ ${message}
   } catch (error) {
     console.error("Erro ao se comunicar com a OpenAI:", error);
     return "Desculpe, houve um erro ao processar sua solicitação. Tente novamente.";
+  }
+};
+
+/**
+ * Gera 5 dicas personalizadas para o usuário com base em seu perfil.
+ * @param userProfile O perfil do usuário com as respostas do formulário.
+ * @returns Uma promessa com um array de strings contendo as dicas.
+ */
+export const generatePersonalizedTips = async (
+  userProfile: UserProfile | null
+): Promise<string[]> => {
+  if (!userProfile?.formResponses) {
+    return [
+      // Retorna dicas genéricas se não houver perfil
+      "Beba pelo menos 2 litros de água por dia.",
+      "Preencha o formulário inicial para receber dicas personalizadas!",
+      "Uma boa noite de sono é fundamental para seus resultados.",
+    ];
+  }
+
+  // O prompt instrui a IA a focar nos dados e retornar um formato específico (JSON)
+  const prompt = `
+    Baseado no perfil de usuário abaixo, gere 2 dicas curtas, úteis e motivadoras sobre nutrição e bem-estar.
+    As dicas devem ser diretamente relacionadas ao "objetivo" principal do usuário.
+    Se o usuário tem restrições, uma das dicas pode ser sobre como lidar com essa restrição.
+
+    Perfil do usuário:
+    ${JSON.stringify(userProfile.formResponses)}
+
+    Sua resposta DEVE ser um array JSON contendo 2 strings, e nada mais.
+    Exemplo de resposta: ["Sua dica 1 aqui.", "Sua dica 2 aqui."]
+  `;
+
+  try {
+    const response = await openai.responses.create({
+      model: "gpt-4o-mini",
+      input: prompt,
+    });
+
+    const responseText = response.output_text ?? "[]";
+    
+    const tipsArray = JSON.parse(responseText);
+
+    
+    if (
+      Array.isArray(tipsArray) &&
+      tipsArray.every((item) => typeof item === "string")
+    ) {
+      return tipsArray;
+    }
+    throw new Error("A IA não retornou um array de strings válido.");
+  } catch (error) {
+    console.error("Erro ao gerar dicas:", error);
+    
+    return ["Tente consumir mais frutas e vegetais no seu dia a dia."];
   }
 };

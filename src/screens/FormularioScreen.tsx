@@ -22,6 +22,8 @@ import { createFormularioStyles } from "../styles/FormularioScreen.style";
 import FormIcon from "../../assets/form.svg";
 import Logo from "../components/Logo";
 
+import { calculateDailyCalories } from '../utils/nutritionCalculator'; 
+
 import { useAuth } from "../context/AuthContext";
 
 const secoes = [
@@ -302,6 +304,7 @@ const FormularioScreen = () => {
                     ? async () => {
                         const uid = FIREBASE_AUTH.currentUser?.uid;
                         const respostasFinal = getRespostasFinal();
+                        const metaCalorica = calculateDailyCalories(respostasFinal);
 
                         if (uid) {
                           try {
@@ -316,6 +319,7 @@ const FormularioScreen = () => {
                               .update({
                                 formularioConcluido: true,
                                 formResponses: respostasFinal,
+                                dailyCalorieGoal: metaCalorica,
                               });
 
                             await reloadProfile();
