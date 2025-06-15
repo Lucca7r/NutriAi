@@ -1,5 +1,3 @@
-// src/context/AuthContext.tsx
-
 import React, {
   createContext,
   useContext,
@@ -12,7 +10,6 @@ import firebase from "firebase/compat/app";
 
 type User = firebase.User;
 
-// Vamos criar uma interface para os dados do nosso perfil
 export interface UserProfile {
   name: string;
   email: string;

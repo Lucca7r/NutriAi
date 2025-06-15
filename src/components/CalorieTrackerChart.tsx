@@ -1,5 +1,3 @@
-// src/components/CalorieTrackerChart.tsx
-
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
@@ -11,35 +9,28 @@ export default function CalorieTrackerChart() {
   const { user, profile } = useAuth();
   const colors = useThemeColors();
 
-  // Estados para controlar os dados do gráfico
   const [consumed, setConsumed] = useState(0);
   const [goal, setGoal] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Garante que temos o usuário e o perfil antes de buscar os dados
     if (!user || !profile?.dailyCalorieGoal) {
       setLoading(false);
       return;
     }
 
-    // Define a meta de calorias a partir do perfil do usuário
     setGoal(profile.dailyCalorieGoal);
 
-    // Cria o ID do documento para o dia de hoje (ex: "2025-06-15")
     const todayDocId = new Date().toISOString().split("T")[0];
 
-    // Configura um listener em tempo real para o consumo de calorias do dia
     const unsubscribe = FIREBASE_DB.collection("users")
       .doc(user.uid)
       .collection("dailyEntries")
       .doc(todayDocId)
       .onSnapshot((doc) => {
         if (doc.exists) {
-          // Se o documento do dia existe, pega as calorias consumidas
           setConsumed(doc.data()?.consumedCalories || 0);
         } else {
-          // Se não existe, significa que nenhuma refeição foi registrada hoje
           setConsumed(0);
         }
         setLoading(false);
@@ -47,7 +38,6 @@ export default function CalorieTrackerChart() {
 
     return () => unsubscribe();
   }, [user, profile]); // Roda o efeito quando o usuário ou o perfil mudam
-
 
   if (loading) {
     return (
@@ -58,7 +48,6 @@ export default function CalorieTrackerChart() {
       />
     );
   }
-
 
   if (goal === 0) {
     return (
@@ -90,12 +79,17 @@ export default function CalorieTrackerChart() {
           // Componente central que mostra os números
           centerLabelComponent={() => {
             return (
-              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                {/* ✨ CORREÇÃO APLICADA AQUI ✨ */}
-                <Text style={{ fontSize: 22, color: colors.text, fontWeight: 'bold' }}>
+              <View style={{ justifyContent: "center", alignItems: "center" }}>
+                <Text
+                  style={{
+                    fontSize: 22,
+                    color: colors.text,
+                    fontWeight: "bold",
+                  }}
+                >
                   {Math.round(consumed)}
                 </Text>
-                {/* ✨ E AQUI ✨ */}
+
                 <Text style={{ fontSize: 14, color: colors.textSecondary }}>
                   de {goal} kcal
                 </Text>
