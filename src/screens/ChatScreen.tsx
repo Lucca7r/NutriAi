@@ -42,15 +42,12 @@ export const ChatScreen = () => {
     .where("userId", "==", user.uid)
     .orderBy("createdAt", "desc")
     .get();
-  console.log("Snapshot size:", snapshot.size);
-    console.log("Snapshot de chats:", snapshot);
 
     const userChats = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-    
-    console.log("Chats do usuário:", userChats);
+
 
     setChats(userChats);
   };
@@ -119,7 +116,7 @@ export const ChatScreen = () => {
         {
           alignSelf: item.role === "user" ? "flex-end" : "flex-start",
           backgroundColor:
-            item.role === "user" ? colors.iconBackground : colors.iconInactive,
+            item.role === "user" ? colors.primary : colors.iconBackground,
         },
       ]}
     >
@@ -156,7 +153,7 @@ export const ChatScreen = () => {
           minWidth: 100,
         }}
       >
-        <Text style={{ color: "black", fontWeight: "bold", fontSize: 12 }}>
+        <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 12 }}>
           {`Chat ${index + 1}`}
         </Text>
       </TouchableOpacity>
