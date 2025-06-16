@@ -9,4 +9,5 @@ export type RootStackParamList = {
   Main: undefined; 
   Formulario: undefined;
   EditProfile: undefined;
+  DailyLog: { date: string };
 };
