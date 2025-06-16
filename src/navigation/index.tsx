@@ -15,6 +15,7 @@ import LoginScreen from "../screens/LoginScreen";
 import FormularioScreen from "../screens/FormularioScreen";
 import BottomTabs from "./BottomTabs";
 import EditProfileScreen from "../screens/EditProfileScreen";
+import FolderRecipesScreen from "../screens/FolderRecipesScreen";
 import { useAuth } from "../context/AuthContext"; // Importe o hook
 import { RootStackParamList } from "../@types/navigation";
 
@@ -74,6 +75,11 @@ export default function AppNavigator() {
                 title: "Editar Perfil",
               }}
             />
+            <Stack.Screen 
+              name="FolderRecipes" 
+              component={FolderRecipesScreen} 
+              options={{headerShown: false}}
+              />
           </>
         ) : (
           <>
