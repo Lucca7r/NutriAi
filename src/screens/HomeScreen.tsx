@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,39 +9,42 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   ActivityIndicator,
-} from "react-native";
-import { useThemeColors } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
-import { generatePersonalizedTips } from "../services/openaiService";
-import { FIREBASE_DB } from "../services/firebaseConfig";
-import firebase from "firebase/compat/app";
+} from 'react-native';
+import { useThemeColors } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { generatePersonalizedTips } from '../services/openaiService';
+import { FIREBASE_DB } from '../services/firebaseConfig';
+import firebase from 'firebase/compat/app';
 
-import CalorieTrackerChart from "../components/CalorieTrackerChart";
-import WeightChart from "../components/WeightChart";
-import FAB from "../components/FAB";
-import AddMealModal from "../components/AddMealModal";
+// --- Nossos componentes ---
+import CalorieTrackerChart from '../components/CalorieTrackerChart';
+import WeightChart from '../components/WeightChart';
+import AddMealModal from '../components/AddMealModal';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 export const HomeScreen = () => {
   const colors = useThemeColors();
   const { user, profile, reloadProfile } = useAuth();
 
   const [isModalVisible, setModalVisible] = useState(false);
-
+  
+  // --- LÓGICA DO CARROSSEL DE GRÁFICOS ---
   const [activeChartIndex, setActiveChartIndex] = useState(0);
-  const chartComponents = [<CalorieTrackerChart />, <WeightChart />];
+  const chartComponents = [
+    <CalorieTrackerChart onAddPress={() => setModalVisible(true)} />, 
+    <WeightChart />
+  ];
 
   const onChartScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slide = Math.ceil(
-      event.nativeEvent.contentOffset.x /
-        event.nativeEvent.layoutMeasurement.width
-    );
+    // Calcula o slide atual com base na posição do scroll
+    const slide = Math.ceil(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
     if (slide !== activeChartIndex) {
       setActiveChartIndex(slide);
     }
   };
-
+  
+  // --- LÓGICA PARA DICAS PERSONALIZADAS ---
   const [tips, setTips] = useState<string[]>([]);
   const [loadingTips, setLoadingTips] = useState(true);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
@@ -52,13 +55,10 @@ export const HomeScreen = () => {
 
       const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
       const now = new Date();
+      
       if (profile.cachedTips) {
         const lastGenerated = profile.cachedTips.generatedAt?.toDate();
-
-        if (
-          lastGenerated &&
-          now.getTime() - lastGenerated.getTime() < oneWeekInMs
-        ) {
+        if (lastGenerated && (now.getTime() - lastGenerated.getTime() < oneWeekInMs)) {
           setTips(profile.cachedTips.tips);
           setLoadingTips(false);
           return;
@@ -68,15 +68,13 @@ export const HomeScreen = () => {
       setLoadingTips(true);
       const newTips = await generatePersonalizedTips(profile);
       setTips(newTips);
-
-      await FIREBASE_DB.collection("users")
-        .doc(user.uid)
-        .update({
-          cachedTips: {
-            tips: newTips,
-            generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          },
-        });
+      
+      await FIREBASE_DB.collection('users').doc(user.uid).update({
+        cachedTips: {
+          tips: newTips,
+          generatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
 
       await reloadProfile();
       setLoadingTips(false);
@@ -94,15 +92,13 @@ export const HomeScreen = () => {
   }, [tips]);
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <Text style={[styles.logo, { color: colors.text }]}>
-          <Text style={{ fontWeight: "bold" }}>Nutrix Pro </Text>AI
+          <Text style={{ fontWeight: 'bold' }}>NutriX Pro </Text>AI
         </Text>
       </View>
-
+      
       <ScrollView>
         <View style={styles.chartCarouselContainer}>
           <ScrollView
@@ -124,12 +120,7 @@ export const HomeScreen = () => {
                 key={index}
                 style={[
                   styles.dot,
-                  {
-                    backgroundColor:
-                      activeChartIndex === index
-                        ? colors.primary
-                        : colors.iconInactive,
-                  },
+                  { backgroundColor: activeChartIndex === index ? colors.primary : colors.iconInactive }
                 ]}
               />
             ))}
@@ -138,14 +129,9 @@ export const HomeScreen = () => {
 
         <View style={styles.divider} />
 
-        {/* --- CARD DE DICAS AGORA É DINÂMICO --- */}
         <View style={styles.tipsContainer}>
-          <Text style={[styles.tipsTitle, { color: colors.text }]}>
-            Dica do Dia
-          </Text>
-          <View
-            style={[styles.card, { backgroundColor: colors.iconBackground }]}
-          >
+          <Text style={[styles.tipsTitle, { color: colors.text }]}>Dica do Dia</Text>
+          <View style={[styles.card, { backgroundColor: colors.iconBackground }]}>
             {loadingTips ? (
               <ActivityIndicator color={colors.primary} />
             ) : (
@@ -157,10 +143,10 @@ export const HomeScreen = () => {
         </View>
       </ScrollView>
 
-      <FAB onPress={() => setModalVisible(true)} />
-      <AddMealModal
-        visible={isModalVisible}
-        onClose={() => setModalVisible(false)}
+      <AddMealModal 
+        visible={isModalVisible} 
+        onClose={() => setModalVisible(false)} 
+        editingMeal={null}
       />
     </SafeAreaView>
   );
@@ -168,24 +154,24 @@ export const HomeScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { marginTop: 40, alignItems: "center", marginBottom: 12 },
-  logo: { fontSize: 32, fontStyle: "italic" },
+  header: { marginTop: 40, alignItems: 'center', marginBottom: 12 },
+  logo: { fontSize: 32, fontStyle: 'italic' },
   chartCarouselContainer: {
     height: 350,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   horizontalScrollView: {
     width: width,
   },
   chartPage: {
     width: width,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   pagination: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
   },
   dot: {
@@ -194,25 +180,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 4,
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginHorizontal: 20,
-    marginVertical: 15,
-  },
-  tipsContainer: { paddingHorizontal: 20, marginTop: 10, marginBottom: 80 },
-  tipsTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  card: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    borderRadius: 15,
-    minHeight: 120,
-  },
-  tipText: { fontSize: 18, textAlign: "center", fontStyle: "italic" },
+  divider: { height: 1, backgroundColor: '#e0e0e0', marginHorizontal: 20, marginVertical: 15 },
+  tipsContainer: { paddingHorizontal: 20, marginTop: 10, marginBottom: 20 },
+  tipsTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  card: { justifyContent: 'center', alignItems: 'center', padding: 20, borderRadius: 15, minHeight: 120 },
+  tipText: { fontSize: 18, textAlign: 'center', fontStyle: 'italic' },
 });

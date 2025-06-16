@@ -14,10 +14,11 @@ import CadastroScreen from "../screens/CadastroScreen";
 import LoginScreen from "../screens/LoginScreen";
 import FormularioScreen from "../screens/FormularioScreen";
 import BottomTabs from "./BottomTabs";
-import EditProfileScreen from '../screens/EditProfileScreen';
+import EditProfileScreen from "../screens/EditProfileScreen";
 import { useAuth } from "../context/AuthContext"; // Importe o hook
 import { RootStackParamList } from "../@types/navigation";
 
+import DailyLogScreen from "../screens/DailyLogScreen";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
@@ -56,15 +57,23 @@ export default function AppNavigator() {
               component={BottomTabs}
               options={{ headerShown: false }}
             />
+            <Stack.Screen 
+              name="DailyLog"
+              component={DailyLogScreen}
+              options={{
+                headerShown: true,
+                title: "Refeições do Dia",
+              }}
+            />
             <Stack.Screen
-            name="EditProfile"
-            component={EditProfileScreen}
-            options={{ 
-              presentation: 'modal', // Efeito de tela subindo
-              headerShown: true, // Mostra um cabeçalho para poder fechar
-              title: 'Editar Perfil' 
-            }}
-          />
+              name="EditProfile"
+              component={EditProfileScreen}
+              options={{
+                presentation: "modal", // Efeito de tela subindo
+                headerShown: true, // Mostra um cabeçalho para poder fechar
+                title: "Editar Perfil",
+              }}
+            />
           </>
         ) : (
           <>
