@@ -10,6 +10,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Platform,
+  Modal,
 } from 'react-native';
 import { useThemeColors } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +25,8 @@ export default function EditProfileScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -68,7 +71,8 @@ export default function EditProfileScreen() {
     }
   };
 
-  const handleEmailChange = () => {
+ 
+  /* const handleEmailChange = (newEmail: string) => {
     if (!user) return;
 
     if (Platform.OS === 'ios') {
@@ -81,22 +85,40 @@ export default function EditProfileScreen() {
             await user.verifyBeforeUpdateEmail(novoEmail.trim());
             Alert.alert('Verifique seu e-mail', 'Enviamos um link de verificação para o novo endereço.');
           } catch (error: any) {
-            console.error('Erro ao alterar e-mail:', error);
-            Alert.alert('Erro', error.message || 'Não foi possível alterar o e-mail.');
+            console.error('Erro ao alterar e-mail: Tente fazer login novamente');
+            Alert.alert('Erro ao alterar e-mail tente fazer login novamente');
           }
         },
         'plain-text'
       );
     } else {
-      // Alternativa para Android (sem Alert.prompt nativo)
-      let novoEmail = '';
-      Alert.alert(
-        'Alterar e-mail',
-        'Funcionalidade disponível apenas em iOS ou implemente um modal personalizado para Android.'
-      );
-      // Em produção, você pode usar um Modal com TextInput.
+      setModalVisible(true);
+    }
+  }; */
+
+  const openModal = () => {
+    setModalVisible(true);
+  }
+
+  const chageEmail = async (newEmail: string) => {
+    setModalVisible(true)
+    if (!user) return;
+
+    if (newEmail) {
+          try {
+            await user.verifyBeforeUpdateEmail(newEmail.trim());
+            const message = 'Verifique seu e-mail, enviamos um link de verificação para o novo endereço.';
+            return  message;
+          } catch (error: any) {
+            Alert.alert('Erro ao alterar e-mail: Tente fazer login novamente');
+            console.error('Erro ao alterar e-mail:', error);
+          }
     }
   };
+  
+    const onClose = () => {
+      setModalVisible(false);
+    };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -114,11 +136,43 @@ export default function EditProfileScreen() {
           />
 
           <TouchableOpacity
-            onPress={handleEmailChange}
-            style={[styles.buttonOutline, { borderColor: colors.primary }]}
-          >
+            onPress={openModal}
+            style={[styles.buttonOutline, { borderColor: colors.primary }]}>
             <Text style={[styles.buttonTextOutline, { color: colors.primary }]}>Alterar E-mail</Text>
           </TouchableOpacity>
+
+  <Modal visible={modalVisible} transparent animationType="fade">
+    <TouchableWithoutFeedback onPress={onClose}>
+    <View style={styles.overlay}>
+      <TouchableWithoutFeedback>
+    <View style={styles.modal}>
+      <Text style={styles.modalTitle}>Alterar E-mail</Text>
+      <TextInput
+        placeholder="Digite o novo e-mail"
+        placeholderTextColor={colors.iconInactive}
+        value={newEmail}
+        onChangeText={setNewEmail}
+        style={[styles.input, { borderColor: colors.text, color: colors.text }]}
+      />
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: '#e53935' }]} // vermelho
+          onPress={onClose}
+        >
+          <Text style={[styles.modalButtonText, { color: 'white' }]}>Cancelar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: '#2e7d32' }]} // verde escuro
+          onPress={ () => {chageEmail(newEmail)}}
+        >
+          <Text style={[styles.modalButtonText, { color: 'white' }]}>Confirmar</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+    </TouchableWithoutFeedback>
+  </View>
+  </TouchableWithoutFeedback>
+</Modal>
 
           <TextInput
             placeholder="Nova senha (deixe vazio para manter)"
@@ -150,7 +204,9 @@ export default function EditProfileScreen() {
             )}
           </TouchableOpacity>
         </View>
+        
       </TouchableWithoutFeedback>
+      
     </SafeAreaView>
   );
 }
@@ -197,4 +253,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  overlay: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},
+modal: {
+  backgroundColor: 'white',
+  padding: 24,
+  borderRadius: 16,
+  width: '85%',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 15,
+  textAlign: 'center',
+},
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 20,
+},
+modalButton: {
+  flex: 1,
+  paddingVertical: 12,
+  borderRadius: 8,
+  marginHorizontal: 5,
+  alignItems: 'center',
+},
+modalButtonText: {
+  fontSize: 16,
+  fontWeight: 'bold',
+},
 });
