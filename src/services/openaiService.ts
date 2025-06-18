@@ -46,6 +46,26 @@ export const estimateCaloriesFromText = async (
   }
 };
 
+function buildSystemMessageRecipe(userProfile: UserProfile | null): string {
+  return `
+Você é um assistente especializado em receitas. Responda apenas com o conteúdo da receita de forma clara, direta e sem saudações, mensagens extras ou explicações.
+
+Formato da resposta:
+- Nome da receita
+- Ingredientes
+- Modo de preparo
+
+Se a receita for para uma refeição específica, inclua o tempo de preparo e as calorias estimadas.
+
+Se o pedido não for relacionado a uma receita de comida ou bebida, responda apenas com:
+"Por favor, peça somente receitas". Também não responda nada que não seja receita mais o tipo dela, não responda se o usuário digitar só um ingrediente ou uma frase vaga como "faça uma receita saudável".
+Seja bem restritivo a sómente responder receitas. e sem pre devolva o erro "Por favor, peça somente receitas".
+
+Preferências do usuário (se fornecidas):
+${userProfile?.formResponses || 'Nenhuma restrição alimentar informada.'}
+`;
+}
+
 /**
  * @param userProfile - O perfil do usuário contendo respostas do formulário.
  */
@@ -77,6 +97,32 @@ AVISO: Não há dados personalizados do usuário. Forneça respostas genéricas 
   }
 
   return systemMessage.trim();
+}
+
+export const sendMessageToRecipeAI = async (
+  message: string,
+  userProfile: UserProfile | null
+): Promise<string> => {
+  const systemContext = buildSystemMessageRecipe(userProfile);
+
+  const prompt = `${systemContext}
+--- PERGUNTA DO USUÁRIO ---
+${message}
+
+--- FIM DA PERGUNTA ---
+`;
+
+  try {
+    const response = await openai.responses.create({
+      model: "gpt-4o-mini", // usa o modelo econômico
+      input: prompt,
+    });
+
+    return response.output_text ?? "Não consegui gerar uma receita.";
+  } catch (error) {
+    console.error("Erro ao se comunicar com a OpenAI:", error);
+    return "Desculpe, houve um erro ao processar sua solicitação. Tente novamente.";
+  }
 }
 
 export const sendMessageToAI = async (

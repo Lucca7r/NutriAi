@@ -9,5 +9,6 @@ export type RootStackParamList = {
   Main: undefined; 
   Formulario: undefined;
   EditProfile: undefined;
+  FolderRecipes: { folderName: string };
   DailyLog: { date: string };
 };
