@@ -9,21 +9,44 @@ import {
   StyleSheet,
   Keyboard,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../context/ThemeContext';
-import { AuthContext, UserProfile } from '../context/AuthContext'; // seu contexto
-import { sendMessageToAI } from '../services/openaiService'; // sua função para chamar OpenAI
-import { saveRecipe, fetchRecipes, Recipe } from '../services/recipeService';
-import { Timestamp } from 'firebase/firestore';
+import { AuthContext, UserProfile } from '../context/AuthContext';
+import { sendMessageToRecipeAI } from '../services/openaiService';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  orderBy,
+  query,
+  Timestamp,
+  deleteDoc,
+  doc,
+} from 'firebase/firestore';
+import { FIREBASE_DB } from '../services/firebaseConfig';
+
+type Recipe = {
+  id?: string;
+  text: string;
+  createdAt: Timestamp;
+};
 
 export default function FolderRecipesScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { folderName } = route.params as { folderName: string };
   const colors = useThemeColors();
+  const authContext = useContext(AuthContext);
 
-  const { userProfile } = useContext(AuthContext) as unknown as { userProfile: UserProfile | null };
+  const userProfile: UserProfile | null = authContext.user
+    ? {
+        ...(authContext.user as any),
+        name: (authContext.user as any).name ?? '',
+        createdAt: (authContext.user as any).createdAt ?? null,
+      }
+    : null;
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +54,34 @@ export default function FolderRecipesScreen() {
   const [inputText, setInputText] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  async function fetchRecipes(folder: string): Promise<Recipe[]> {
+    const ref = collection(FIREBASE_DB, 'recipes', folder, 'items');
+    const q = query(ref, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Recipe[];
+  }
+
+  async function saveRecipe(folder: string, text: string): Promise<void> {
+    const ref = collection(FIREBASE_DB, 'recipes', folder, 'items');
+    await addDoc(ref, {
+      text,
+      createdAt: Timestamp.now(),
+    });
+  }
+
+  async function deleteRecipe(id: string) {
+    try {
+      const recipeRef = doc(FIREBASE_DB, 'recipes', folderName, 'items', id);
+      await deleteDoc(recipeRef);
+      setRecipes((prev) => prev.filter((r) => r.id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar receita:', error);
+    }
+  }
 
   useEffect(() => {
     async function loadRecipes() {
@@ -47,23 +98,6 @@ export default function FolderRecipesScreen() {
     loadRecipes();
   }, [folderName]);
 
-  async function generateRecipe(prompt: string): Promise<string> {
-    const recipePrompt = `
-      Gere uma receita detalhada baseada no pedido a seguir, considerando as restrições e preferências do usuário.
-      Pedido: "${prompt}"
-      Forneça uma receita clara, segura e adequada às restrições alimentares do usuário.
-      Caso o pedido não seja algo relacionado a receitas, retorne uma mensagem dizendo que não é possível gerar uma receita.
-      Mande somente a receita, sem explicações adicionais, nem mensagens.
-    `;
-    try {
-      const response = await sendMessageToAI(recipePrompt, userProfile);
-      return response;
-    } catch (error) {
-      console.error('Erro ao gerar receita:', error);
-      throw new Error('Erro ao gerar receita');
-    }
-  }
-
   async function handleAddRecipe() {
     setErrorMsg(null);
     if (!inputText.trim()) {
@@ -73,20 +107,25 @@ export default function FolderRecipesScreen() {
 
     setGenerating(true);
     try {
-      const result = await generateRecipe(inputText.trim());
+      const result = await sendMessageToRecipeAI(inputText.trim(), userProfile);
 
-      // Salva no Firestore
+      if (result === 'Por favor, peça somente receitas.') {
+        setErrorMsg('Por favor, peça somente receitas.');
+        return;
+      }
+
       await saveRecipe(folderName, result);
+      const newRecipe: Recipe = {
+        text: result,
+        createdAt: Timestamp.now(),
+      };
 
-      // Atualiza localmente a lista
-      setRecipes((old) => [
-        { text: result, createdAt: Timestamp.now() },
-        ...old,
-      ]);
+      setRecipes((old) => [newRecipe, ...old]);
       setInputText('');
       setAdding(false);
       Keyboard.dismiss();
     } catch (error: any) {
+      console.error('Erro ao gerar receita:', error);
       setErrorMsg(error.message || 'Erro desconhecido');
     } finally {
       setGenerating(false);
@@ -103,7 +142,12 @@ export default function FolderRecipesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Pasta: {folderName}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>Pasta: {folderName}</Text>
+      </View>
 
       {adding && (
         <View style={[styles.inputContainer, { borderColor: colors.textSecondary || '#888' }]}>
@@ -150,13 +194,22 @@ export default function FolderRecipesScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
           <View style={[styles.card, { backgroundColor: colors.iconBackground }]}>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => item.id && deleteRecipe(item.id)}
+            >
+              <Ionicons name="trash" size={20} color="red" />
+            </TouchableOpacity>
             <Text style={[styles.recipeText, { color: colors.text }]}>{item.text}</Text>
           </View>
         )}
       />
 
       {!adding && (
-        <TouchableOpacity style={[styles.floatingButton, { backgroundColor: colors.primary }]} onPress={() => setAdding(true)}>
+        <TouchableOpacity
+          style={[styles.floatingButton, { backgroundColor: colors.primary }]}
+          onPress={() => setAdding(true)}
+        >
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
       )}
@@ -173,11 +226,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    marginRight: 12,
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   inputContainer: {
     marginHorizontal: 16,
@@ -217,6 +277,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     padding: 16,
     borderRadius: 8,
+    position: 'relative',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -225,6 +286,13 @@ const styles = StyleSheet.create({
   },
   recipeText: {
     fontSize: 16,
+  },
+  deleteButton: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    padding: 4,
+    zIndex: 1,
   },
   floatingButton: {
     position: 'absolute',

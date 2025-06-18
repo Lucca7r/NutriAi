@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,11 @@ import {
 import { useThemeColors } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../@types/navigation';
-import { FIREBASE_DB } from "../services/firebaseConfig";
-import { useAuth } from "../context/AuthContext";
+import { FIREBASE_DB } from '../services/firebaseConfig';
+import { useAuth } from '../context/AuthContext';
 
 export type FavoritesScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -22,14 +22,13 @@ type Folder = {
   id: string;
   userId: string;
   title: string;
-  count: number;
+  count?: number;
 };
 
 export const FavoritesScreen = () => {
   const colors = useThemeColors();
   const navigation = useNavigation<FavoritesScreenNavigationProp>();
-
-  const auth = useAuth();  // <-- hook no topo do componente
+  const auth = useAuth();
   const user = auth.user;
 
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -41,7 +40,7 @@ export const FavoritesScreen = () => {
 
   const firestore = FIREBASE_DB;
 
-  useEffect(() => {
+  const loadFolders = useCallback(() => {
     if (!user) return;
 
     const foldersRef = firestore
@@ -49,16 +48,39 @@ export const FavoritesScreen = () => {
       .where('userId', '==', user.uid)
       .orderBy('title');
 
-    const unsubscribe = foldersRef.onSnapshot(snapshot => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Folder, 'id'>),
-      }));
-      setFolders(data);
+    const unsubscribe = foldersRef.onSnapshot(async snapshot => {
+      const fetchedFolders: Folder[] = [];
+
+      for (const doc of snapshot.docs) {
+        const folderData = doc.data() as Omit<Folder, 'id'>;
+        const folderId = doc.id;
+
+        const recipesSnapshot = await firestore
+          .collection('recipes')
+          .doc(folderData.title)
+          .collection('items')
+          .get();
+
+        fetchedFolders.push({
+          id: folderId,
+          title: folderData.title,
+          userId: folderData.userId,
+          count: recipesSnapshot.size,
+        });
+      }
+
+      setFolders(fetchedFolders);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, [firestore, user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = loadFolders();
+      return () => unsubscribe && unsubscribe();
+    }, [loadFolders])
+  );
 
   const filteredFolders = folders.filter(folder =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,8 +91,7 @@ export const FavoritesScreen = () => {
   };
 
   const handleAddOrEditFolder = async () => {
-    if (!newFolderTitle.trim()) return;
-    if (!user) return;
+    if (!newFolderTitle.trim() || !user) return;
 
     try {
       if (editingFolderId) {
@@ -80,15 +101,15 @@ export const FavoritesScreen = () => {
       } else {
         await firestore.collection('folders').add({
           title: newFolderTitle.trim(),
-          count: 0,
           userId: user.uid,
         });
       }
+
       setNewFolderTitle('');
       setShowInput(false);
       setEditingFolderId(null);
     } catch (error) {
-      console.error("Erro ao salvar pasta:", error);
+      console.error('Erro ao salvar pasta:', error);
     }
   };
 
@@ -97,7 +118,7 @@ export const FavoritesScreen = () => {
       await firestore.collection('folders').doc(id).delete();
       setMenuVisibleId(null);
     } catch (error) {
-      console.error("Erro ao deletar pasta:", error);
+      console.error('Erro ao deletar pasta:', error);
     }
   };
 
@@ -178,7 +199,7 @@ export const FavoritesScreen = () => {
                   {item.title}
                 </Text>
                 <Text style={[styles.folderCount, { color: colors.textSecondary }]}>
-                  {item.count} receitas
+                  {item.count ?? 0} receita{item.count === 1 ? '' : 's'}
                 </Text>
                 <TouchableOpacity
                   style={styles.menuButton}
