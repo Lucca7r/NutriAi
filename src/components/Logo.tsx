@@ -11,7 +11,7 @@ const Logo = () => {
   return (
     <View style={styles.logoContainer}>
       <Ionicons name="leaf" size={32} color={"#C8C9D2"} />
-      <Text style={styles.logoText}>NutriAI</Text>
+      <Text style={styles.logoText}>NutriX Pro AI</Text>
     </View>
   );
 };

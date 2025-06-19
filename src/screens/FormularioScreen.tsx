@@ -18,7 +18,7 @@ import { FIREBASE_DB, FIREBASE_AUTH } from "../services/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { ProgressSteps, ProgressStep } from "react-native-progress-steps";
 import { useThemeColors } from "../context/ThemeContext";
-import { createFormularioStyles } from "../styles/FormularioScreen.style";
+import { createGeralStyles } from "../styles/Geral.style";
 import FormIcon from "../../assets/form.svg";
 import Logo from "../components/Logo";
 
@@ -208,7 +208,7 @@ const secoes = [
 
 const FormularioScreen = () => {
   const colors = useThemeColors();
-  const styles = createFormularioStyles(colors);
+  const styles = createGeralStyles(colors);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { reloadProfile } = useAuth();

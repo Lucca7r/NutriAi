@@ -13,13 +13,14 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
-import { createCadastroStyles } from "../styles/CadastroScreen.style";
+import { createGeralStyles } from "../styles/Geral.style";
 
 import { Alert } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../services/firebaseConfig";
 import firebase from "firebase/compat/app";
 
 import type { StackNavigationProp } from "@react-navigation/stack";
+import Logo from "../components/Logo";
 
 type RootStackParamList = {
   Login: undefined;
@@ -37,7 +38,7 @@ interface CadastroScreenProps {
 
 const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
   const colors = useThemeColors();
-  const styles = createCadastroStyles(colors);
+  const styles = createGeralStyles(colors);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -86,22 +87,20 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="nutrition" size={32} color={colors.text} />
-            <Text style={styles.logoText}>NutriAI</Text>
-          </View>
-          <Text style={styles.title}>Crie Uma Nova Conta</Text>
+          <Logo />
+          <View style={styles.formContainer}>
+          <Text style={[styles.sectionTitle, { textAlign: "center" }]}>Crie Uma Nova Conta</Text>
           <TextInput
             style={styles.input}
             placeholder="Nome"
-            placeholderTextColor={colors.text}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={nome}
             onChangeText={setNome}
           />
           <TextInput
             style={styles.input}
             placeholder="E-mail"
-            placeholderTextColor={colors.text}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -109,7 +108,7 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
           <TextInput
             style={styles.input}
             placeholder="Senha"
-            placeholderTextColor={colors.text}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
@@ -117,13 +116,13 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
           <TextInput
             style={styles.input}
             placeholder="Confirmação de senha"
-            placeholderTextColor={colors.text}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={confirmarSenha}
             onChangeText={setConfirmarSenha}
             secureTextEntry
           />
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, { marginTop: 20 }]}
             onPress={handleCadastro} // Use a nova função aqui
             disabled={isLoading} // Desabilita o botão durante o carregamento
           >
@@ -138,8 +137,9 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
             <Text style={styles.googleButtonText}>
               Cadastre-se com o Google
             </Text>
-            <Ionicons name="logo-google" size={24} color={colors.activeIcon} />
+            <Ionicons name="logo-google" size={24} color="#000000" />
           </TouchableOpacity>
+          </View>
           <View style={styles.linkContainer}>
             <Text style={styles.linkText}>Já possui uma conta?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
