@@ -18,6 +18,7 @@ import { useAuth } from "../context/AuthContext";
 import { useThemeColors } from "../context/ThemeContext";
 import { FIREBASE_DB, FIREBASE_AUTH } from "../services/firebaseConfig";
 import firebase from "firebase/compat/app";
+import { createGeralStyles } from "../styles/Geral.style";
 
 interface WeightData {
   value: number;
@@ -28,6 +29,7 @@ interface WeightData {
 export default function WeightChart() {
   const { user } = useAuth();
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const [chartData, setChartData] = useState<WeightData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -108,22 +110,21 @@ export default function WeightChart() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* NOVO CABEÇALHO COM TÍTULO E BOTÃO */}
+    <View style={styles.calorieContainer}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
           Evolução do Peso
         </Text>
         <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.primary }]}
+          style={styles.addButton}
           onPress={() => setModalVisible(true)}
         >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Ionicons name="add" size={24} color="#000000" />
         </TouchableOpacity>
       </View>
 
       {chartData.length < 2 ? (
-        <Text style={[styles.noDataText, { color: colors.text }]}>
+        <Text style={styles.noDataText}>
           Registre seu peso pelo menos duas vezes para ver sua evolução.
         </Text>
       ) : (
@@ -132,16 +133,15 @@ export default function WeightChart() {
           data={chartData}
           curved
           height={200}
-          // --- PROPRIEDADES DE COR RESTAURADAS ---
           color={colors.primary}
           startFillColor={colors.primary}
           endFillColor={colors.background}
           startOpacity={0.4}
           endOpacity={0.1}
           yAxisColor={colors.iconInactive}
-          yAxisTextStyle={{ color: colors.text }}
+          yAxisTextStyle={{ color: "#C8C9D2" }}
           xAxisColor={colors.iconInactive}
-          xAxisLabelTextStyle={{ color: colors.text }}
+          xAxisLabelTextStyle={{ color: "#C8C9D2" }}
           pointerConfig={{
             pointerColor: colors.iconInactive,
             pointerStripColor: colors.primary,
@@ -209,72 +209,3 @@ export default function WeightChart() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 20,
-    padding: 20,
-    borderRadius: 12,
-  },
-  header: {
-    // NOVO ESTILO
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  addButton: {
-    // NOVO ESTILO
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noDataText: {
-    textAlign: "center",
-    marginTop: 30,
-    fontSize: 16,
-    paddingVertical: 40, // Adiciona espaço quando não há gráfico
-  },
-  // --- Estilos do Modal (movidos e ajustados) ---
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalView: {
-    margin: 20,
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    elevation: 5,
-  },
-  modalTitle: { fontSize: 20, marginBottom: 15 },
-  input: {
-    height: 40,
-    width: 200,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    textAlign: "center",
-    fontSize: 18,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginTop: 20,
-  },
-  tooltip: {
-    backgroundColor: "rgba(0,0,0,0.8)",
-    padding: 8,
-    borderRadius: 6,
-  },
-});

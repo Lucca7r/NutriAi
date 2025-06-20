@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../@types/navigation";
 import { Ionicons } from "@expo/vector-icons";
+import { createGeralStyles } from "../styles/Geral.style";
 
 type ChartNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -26,6 +27,7 @@ export default function CalorieTrackerChart({
 }: CalorieTrackerChartProps) {
   const { user, profile } = useAuth();
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
 
   const navigation = useNavigation<ChartNavigationProp>();
 
@@ -92,87 +94,52 @@ export default function CalorieTrackerChart({
 
   return (
     <TouchableOpacity onPress={handleNavigateToDetails} activeOpacity={0.8}>
-      <View style={styles.container}>
-        <View style={styles.container}>
-          {/* 👇 PASSO 2: Criar o novo cabeçalho com o botão */}
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              Consumo Diário
-            </Text>
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colors.primary }]}
-              onPress={onAddPress}
-            >
-              <Ionicons name="add" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.chartContainer}>
-            <PieChart
-              key={colors.background}
-              data={pieData}
-              donut
-              showGradient
-              radius={80}
-              innerRadius={60}
-              // Componente central que mostra os números
-              centerLabelComponent={() => {
-                return (
-                  <View
-                    style={{ justifyContent: "center", alignItems: "center" }}
+      <View style={styles.calorieContainer}>
+        <View style={styles.header}>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+            Consumo Diário
+          </Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={onAddPress}
+          >
+            <Ionicons name="add" size={24} color="#000000" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.chartContainer}>
+          <PieChart
+            key={colors.background}
+            data={pieData}
+            donut
+            showGradient
+            radius={80}
+            innerRadius={60}
+            // Componente central que mostra os números
+            centerLabelComponent={() => {
+              return (
+                <View
+                  style={{ justifyContent: "center", alignItems: "center" }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 22,
+                      color: "#000000",
+                      fontWeight: "bold",
+                    }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 22,
-                        color: colors.text,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {Math.round(consumed)}
-                    </Text>
+                    {Math.round(consumed)}
+                  </Text>
 
-                    <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                      de {goal} kcal
-                    </Text>
-                  </View>
-                );
-              }}
-            />
-          </View>
+                  <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                    de {goal} kcal
+                  </Text>
+                </View>
+              );
+            }}
+          />
         </View>
       </View>
     </TouchableOpacity>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 20,
-    padding: 20,
-    alignItems: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 10, // Ajuste para alinhar com o gráfico
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chartContainer: {
-    marginTop: 20,
-  },
-  messageText: {
-    fontSize: 16,
-    textAlign: 'center',
-    paddingVertical: 40,
-  }
-});
+

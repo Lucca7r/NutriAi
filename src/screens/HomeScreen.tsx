@@ -15,16 +15,19 @@ import { useAuth } from '../context/AuthContext';
 import { generatePersonalizedTips } from '../services/openaiService';
 import { FIREBASE_DB } from '../services/firebaseConfig';
 import firebase from 'firebase/compat/app';
+import { createGeralStyles } from "../styles/Geral.style";
 
 // --- Nossos componentes ---
 import CalorieTrackerChart from '../components/CalorieTrackerChart';
 import WeightChart from '../components/WeightChart';
 import AddMealModal from '../components/AddMealModal';
+import Logo from '../components/Logo';
 
 const { width } = Dimensions.get('window');
 
 export const HomeScreen = () => {
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const { user, profile, reloadProfile } = useAuth();
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -92,62 +95,60 @@ export const HomeScreen = () => {
   }, [tips]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.logo, { color: colors.text }]}>
-          <Text style={{ fontWeight: 'bold' }}>NutriX Pro </Text>AI
-        </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.homeContainer}>
+        <Logo />
+        
+        <ScrollView>
+          <View>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={onChartScroll}
+              style={styles.horizontalScrollView}
+            >
+              {chartComponents.map((chart, index) => (
+                <View key={index} style={styles.chartPage}>
+                  {chart}
+                </View>
+              ))}
+            </ScrollView>
+            <View style={styles.pagination}>
+              {chartComponents.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    { backgroundColor: activeChartIndex === index ? "#C8C9D2" : colors.iconInactive }
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.tipsContainer}>
+            <Text style={styles.sectionTitle}>Dica do Dia</Text>
+            <View style={styles.card}>
+              {loadingTips ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.tipText}>
+                  {tips[currentTipIndex] ?? "Bem-vindo ao NutriAI!"}
+                </Text>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+
+        <AddMealModal 
+          visible={isModalVisible} 
+          onClose={() => setModalVisible(false)} 
+          editingMeal={null}
+        />
       </View>
-      
-      <ScrollView>
-        <View style={styles.chartCarouselContainer}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={onChartScroll}
-            style={styles.horizontalScrollView}
-          >
-            {chartComponents.map((chart, index) => (
-              <View key={index} style={styles.chartPage}>
-                {chart}
-              </View>
-            ))}
-          </ScrollView>
-          <View style={styles.pagination}>
-            {chartComponents.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  { backgroundColor: activeChartIndex === index ? colors.primary : colors.iconInactive }
-                ]}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.tipsContainer}>
-          <Text style={[styles.tipsTitle, { color: colors.text }]}>Dica do Dia</Text>
-          <View style={[styles.card, { backgroundColor: colors.iconBackground }]}>
-            {loadingTips ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              <Text style={[styles.tipText, { color: colors.text }]}>
-                {tips[currentTipIndex] ?? "Bem-vindo ao NutriAI!"}
-              </Text>
-            )}
-          </View>
-        </View>
-      </ScrollView>
-
-      <AddMealModal 
-        visible={isModalVisible} 
-        onClose={() => setModalVisible(false)} 
-        editingMeal={null}
-      />
     </SafeAreaView>
   );
 };
@@ -156,10 +157,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { marginTop: 40, alignItems: 'center', marginBottom: 12 },
   logo: { fontSize: 32, fontStyle: 'italic' },
-  chartCarouselContainer: {
-    height: 350,
-    justifyContent: 'center',
-  },
+  // chartCarouselContainer: {
+  //   height: 350,
+  //   justifyContent: 'center',
+  // },
   horizontalScrollView: {
     width: width,
   },

@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet } from "react-native";
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export const createGeralStyles = (colors: any) =>
   StyleSheet.create({
@@ -24,6 +24,11 @@ export const createGeralStyles = (colors: any) =>
       justifyContent: "center",
       flex: 1,
       paddingHorizontal: 24,
+      paddingBottom: 40,
+    },
+    homeContainer: {
+      flex: 1,
+      justifyContent: "space-between",
       paddingBottom: 40,
     },
     logoText: {
@@ -311,11 +316,6 @@ export const createGeralStyles = (colors: any) =>
       textDecorationLine: "underline",
     },
     // home
-    chartCarouselContainer: {
-      // height: 350,
-      // justifyContent: "center",
-      paddingHorizontal: 20,
-    },
     horizontalScrollView: {
       width: width,
     },
@@ -367,5 +367,111 @@ export const createGeralStyles = (colors: any) =>
       color: "#C8C9D2",
       textAlign: "center",
       fontStyle: "italic",
+    },
+    addButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#D9D9D9",
+      elevation: 8,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      width: "100%",
+      paddingHorizontal: 15,
+    },
+    calorieContainer: {
+      padding: 10,
+      alignItems: "center",
+    },
+    chartContainer: {
+      marginTop: 20,
+    },
+    messageText: {
+      fontSize: 16,
+      textAlign: "center",
+      paddingVertical: 40,
+    },
+    noDataText: {
+      textAlign: "center",
+      marginTop: 30,
+      fontSize: 16,
+      paddingVertical: 40,
+      fontFamily: "Poppins_400Regular",
+      color: "#C8C9D2",
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalTitle: {
+      fontSize: 20,
+      marginBottom: 15,
+    },
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      marginTop: 20,
+    },
+    tooltip: {
+      backgroundColor: "rgba(0,0,0,0.8)",
+      padding: 8,
+      borderRadius: 6,
+    },
+    overlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.6)",
+    },
+    modalView: {
+      width: "90%",
+      borderRadius: 20,
+      padding: 25,
+      elevation: 5,
+      backgroundColor: "#282A30",
+    },
+    mealTypeContainer: {
+      fontFamily: "Poppins_400Regular",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "flex-start",
+      marginBottom: 5,
+    },
+    mealTypeButton: {
+      fontFamily: "Poppins_400Regular",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderWidth: 1,
+      borderRadius: 20,
+      margin: 4,
+    },
+    estimateButton: {
+      width: "100%",
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 15,
+    },
+    saveButton: {
+      width: "100%",
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 10,
+    },
+    saveButtonText: {
+      fontFamily: "Poppins_500Medium",
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#000000",
+      letterSpacing: 0.5,
     },
   });

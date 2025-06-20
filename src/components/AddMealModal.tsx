@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { FIREBASE_DB } from '../services/firebaseConfig';
 import firebase from 'firebase/compat/app';
 import { estimateCaloriesFromText } from '../services/openaiService';
+import { createGeralStyles } from "../styles/Geral.style";
 
 // Interface para definir a estrutura de uma refeição
 interface Meal {
@@ -30,6 +31,7 @@ const mealTypes = ["Café da Manhã", "Almoço", "Jantar", "Lanche"];
 
 export default function AddMealModal({ visible, onClose, editingMeal }: AddMealModalProps) {
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const { user } = useAuth();
 
   const [selectedMealType, setSelectedMealType] = useState<string | null>(null);
@@ -147,49 +149,49 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.overlay}>
-        <View style={[styles.modalView, { backgroundColor: colors.iconBackground }]}>
-          <Text style={[styles.title, { color: colors.text }]}>
+        <View style={styles.modalView}>
+          <Text style={styles.sectionTitle}>
             {editingMeal ? 'Editar Refeição' : 'Registrar Refeição'}
           </Text>
 
-          <Text style={[styles.label, { color: colors.text }]}>Tipo de Refeição</Text>
+          <Text style={[styles.label, { marginTop: 12 }]}>Tipo de Refeição</Text>
           <View style={styles.mealTypeContainer}>
             {mealTypes.map(type => (
               <TouchableOpacity
                 key={type}
                 style={[styles.mealTypeButton, {
-                  backgroundColor: selectedMealType === type ? colors.primary : 'transparent',
-                  borderColor: colors.primary,
+                  backgroundColor: selectedMealType === type ? "#D9D9D9" : 'transparent',
+                  borderColor: "#D9D9D9",
                 }]}
                 onPress={() => setSelectedMealType(type)}
               >
-                <Text style={{ color: selectedMealType === type ? '#FFF' : colors.text }}>{type}</Text>
+                <Text style={{ color: selectedMealType === type ? '#000' : "#C8C9D2" }}>{type}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>O que você comeu?</Text>
+          <Text style={[styles.label, { marginTop: 12, textAlign: 'center' }]}>O que você comeu?</Text>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.iconInactive, height: 80 }]}
+            style={[styles.input, { borderColor: colors.iconInactive }]}
             placeholder="Ex: 2 ovos, 1 pão e 1 banana"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={description}
             onChangeText={setDescription}
             multiline
           />
 
           <TouchableOpacity
-            style={[styles.estimateButton, { backgroundColor: colors.primary, opacity: isEstimating ? 0.6 : 1 }]}
+            style={[styles.button, { marginTop: 10, opacity: isEstimating ? 0.6 : 1 }]}
             onPress={handleEstimateCalories}
             disabled={isEstimating}
           >
-            {isEstimating ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveButtonText}>Estimar Calorias com IA</Text>}
+            {isEstimating ? <ActivityIndicator color="#000" /> : <Text style={styles.saveButtonText}>Estimar Calorias com IA</Text>}
           </TouchableOpacity>
           
-          <Text style={[styles.label, { color: colors.text, textAlign: 'center', width: '100%' }]}>ou insira manualmente</Text>
+          <Text style={[styles.label, { marginVertical: 12 , textAlign: 'center', width: '100%' }]}>ou insira manualmente</Text>
           
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.iconInactive, textAlign: 'center' }]}
+            style={[styles.input, { borderColor: colors.iconInactive, textAlign: 'center' }]}
             placeholder="Kcal"
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
@@ -198,7 +200,7 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
           />
           
           <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary, opacity: parseInt(calories, 10) > 0 && !isSaving ? 1 : 0.5 }]}
+            style={[styles.button, { marginTop: 10, opacity: parseInt(calories, 10) > 0 && !isSaving ? 1 : 0.5 }]}
             onPress={handleSaveMeal}
             disabled={parseInt(calories, 10) <= 0 || isSaving}
           >
@@ -206,7 +208,7 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
           </TouchableOpacity>
           
           <TouchableOpacity onPress={handleClose} style={{marginTop: 10}}>
-            <Text style={{ color: colors.textSecondary }}>Cancelar</Text>
+            <Text style={{ color: "#C8C9D2", fontFamily: styles.buttonText.fontFamily, marginTop: 12 }}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -220,8 +222,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   label: { fontSize: 16, fontWeight: '500', alignSelf: 'flex-start', marginBottom: 8, marginTop: 15 },
   input: { width: '100%', borderWidth: 1, borderRadius: 10, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16 },
-  mealTypeContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', marginBottom: 5 },
-  mealTypeButton: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderRadius: 20, margin: 4 },
   estimateButton: { width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 15 },
   saveButton: { width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
