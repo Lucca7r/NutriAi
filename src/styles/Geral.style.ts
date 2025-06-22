@@ -31,6 +31,18 @@ export const createGeralStyles = (colors: any) =>
       justifyContent: "space-between",
       paddingBottom: 40,
     },
+    headerChat: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 50,
+      marginBottom: 12,
+    },
+    chatContainer: {
+      flex: 1,
+      paddingHorizontal: 24,
+      justifyContent: "space-between",
+    },
     logoText: {
       fontSize: 36,
       fontFamily: "Poppins_700Bold_Italic",
@@ -627,5 +639,58 @@ export const createGeralStyles = (colors: any) =>
       fontSize: 24,
       fontWeight: "600",
       marginTop: 12,
+    },
+
+    // Chat
+    chat: {
+      padding: 16,
+      flexGrow: 1,
+      justifyContent: "flex-end",
+    },
+    buttonNewChat: {
+      backgroundColor: "#D9D9D9",
+      fontFamily: "Poppins_500Medium",
+      borderRadius: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: "auto",
+      elevation: 8,
+      padding: 12,
+      marginHorizontal: 16,
+      marginBottom: 10,
+
+    },
+    buttonTextNewChat: {
+      fontFamily: "Poppins_500Medium",
+      fontSize: 14,
+      fontWeight: "600",
+      color: "#000000",
+      letterSpacing: 0.5,
+    },
+    message: {
+      padding: 10,
+      borderRadius: 20,
+      marginBottom: 10,
+      maxWidth: "80%",
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: 12,
+      borderWidth: 1,
+      marginHorizontal: 16,
+      marginBottom: 116,
+      paddingHorizontal: 12,
+      height: 60,
+      borderColor: "#D9D9D9",
+    },
+    sendInlineButton: {
+      marginLeft: 8,
+      backgroundColor: "#D9D9D9",
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 12,
     },
   });

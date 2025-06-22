@@ -18,6 +18,7 @@ import { sendMessageToAI } from "../services/openaiService";
 import { FIREBASE_DB } from "../services/firebaseConfig";
 import firebase from "firebase/compat/app";
 import styles from "../styles/ChatScreen.style";
+import { createGeralStyles } from "../styles/Geral.style";
 
 interface Message {
   role: "user" | "assistant";
@@ -26,6 +27,7 @@ interface Message {
 
 export const ChatScreen = () => {
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const { user, profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -37,17 +39,15 @@ export const ChatScreen = () => {
   const fetchUserChats = async () => {
     if (!user) return;
 
-    
-  const snapshot = await FIREBASE_DB.collection("chats")
-    .where("userId", "==", user.uid)
-    .orderBy("createdAt", "desc")
-    .get();
+    const snapshot = await FIREBASE_DB.collection("chats")
+      .where("userId", "==", user.uid)
+      .orderBy("createdAt", "desc")
+      .get();
 
     const userChats = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-
 
     setChats(userChats);
   };
@@ -63,8 +63,8 @@ export const ChatScreen = () => {
     setCurrentChatId(newChatRef.id);
     setMessages([]);
     setTimeout(() => {
-    fetchUserChats();
-  }, 1000);
+      fetchUserChats();
+    }, 1000);
   };
 
   // Enviar mensagem
@@ -80,9 +80,11 @@ export const ChatScreen = () => {
       const responseText = await sendMessageToAI(input, profile);
       const aiMsg: Message = { role: "assistant", content: responseText };
 
-      await FIREBASE_DB.collection("chats").doc(currentChatId).update({
-        messages: firebase.firestore.FieldValue.arrayUnion(userMsg, aiMsg),
-      });
+      await FIREBASE_DB.collection("chats")
+        .doc(currentChatId)
+        .update({
+          messages: firebase.firestore.FieldValue.arrayUnion(userMsg, aiMsg),
+        });
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
@@ -116,105 +118,100 @@ export const ChatScreen = () => {
         {
           alignSelf: item.role === "user" ? "flex-end" : "flex-start",
           backgroundColor:
-            item.role === "user" ? colors.primary : colors.iconBackground,
+            item.role === "user" ? "#53545D" : "#41424A",
         },
       ]}
     >
-      <Text style={{ color: colors.text }}>
-        {item.content}
-      </Text>
+      <Text style={{ color: "#FFFFFF" }}>{item.content}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={100}
-    >
-      {/* Lista de chats anteriores */}
-  <View style={{ maxHeight: 100, paddingVertical: 10 }}>
-  <FlatList
-    horizontal
-    data={chats}
-    keyExtractor={(item) => item.id}
-    renderItem={({ item, index }) => (
-      <TouchableOpacity
-        onPress={() => openChat(item.id)}
-        style={{
-          padding: 10,
-          marginHorizontal: 6,
-          backgroundColor:
-            currentChatId === item.id ? colors.primary : colors.iconBackground,
-          borderRadius: 10,
-          borderWidth: 1,
-          borderColor: colors.iconInactive,
-          minWidth: 100,
-        }}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.chatContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={100}
       >
-        <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 12 }}>
-          {`Chat ${index + 1}`}
-        </Text>
-      </TouchableOpacity>
-    )}
-    showsHorizontalScrollIndicator={false}
-    contentContainerStyle={{ paddingHorizontal: 10 }}
-  />
-</View>
+        {/* Lista de chats anteriores */}
+        <View style={styles.headerChat}>
+          <FlatList
+            horizontal
+            data={chats}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                onPress={() => openChat(item.id)}
+                style={{
+                  padding: 10,
+                  marginHorizontal: 6,
+                  backgroundColor:
+                    currentChatId === item.id
+                      ? "#D9D9D9"
+                      : "transparent",
+                  borderWidth: 1,
+                  borderColor: "#D9D9D9",
+                  borderRadius: 10,
+                  minWidth: 100,
+                }}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { fontSize: 12, textAlign: "center", color: currentChatId === item.id ? '#000' : "#C8C9D2" },
+                  ]}
+                >
+                  {`Chat ${index + 1}`}
+                </Text>
+              </TouchableOpacity>
+            )}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
+          />
+        </View>
 
-      {/* Lista de mensagens */}
-      <FlatList
-        data={messages}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.chat}
-      />
-
-      {/* Botão de novo chat */}
-      <TouchableOpacity
-        onPress={startNewChat}
-        style={{
-          backgroundColor: colors.primary,
-          padding: 12,
-          marginHorizontal: 20,
-          marginBottom: 10,
-          borderRadius: 10,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Novo Chat</Text>
-      </TouchableOpacity>
-
-      {/* Input + botão de envio */}
-      <View style={[styles.inputWrapper, { borderColor: colors.text }]}>
-        <TextInput
-          placeholder="Digite sua dúvida..."
-          placeholderTextColor={colors.iconInactive}
-          style={[
-            styles.inputInside,
-            { color: colors.text, borderColor: colors.iconInactive },
-          ]}
-          value={input}
-          onChangeText={setInput}
-          editable={!loadingAI}
-          keyboardAppearance={
-            colors.background === "#1a1a1a" ? "dark" : "light"
-          }
+        {/* Lista de mensagens */}
+        <FlatList
+          data={messages}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.chat}
         />
-        <TouchableOpacity
-          onPress={sendMessage}
-          style={styles.sendInlineButton}
-          disabled={loadingAI}
-        >
-          {loadingAI ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={{ color: "#fff" }}>➤</Text>
-          )}
+
+        {/* Botão de novo chat */}
+        <TouchableOpacity onPress={startNewChat} style={styles.buttonNewChat}>
+          <Text style={styles.buttonTextNewChat}>Novo Chat</Text>
         </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+
+        {/* Input + botão de envio */}
+        <View style={styles.inputWrapper}>
+          <TextInput
+            placeholder="Digite sua dúvida..."
+            placeholderTextColor={colors.iconInactive}
+            style={[
+              styles.searchInput,
+              { backgroundColor: "transparent" },
+            ]}
+            value={input}
+            onChangeText={setInput}
+            editable={!loadingAI}
+            keyboardAppearance={
+              colors.background === "#1a1a1a" ? "dark" : "light"
+            }
+          />
+          <TouchableOpacity
+            onPress={sendMessage}
+            style={styles.sendInlineButton}
+            disabled={loadingAI}
+          >
+            {loadingAI ? (
+              <ActivityIndicator size="small" color="#000000" />
+            ) : (
+              <Text style={{ color: "#000000" }}>➤</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
