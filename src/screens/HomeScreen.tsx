@@ -152,38 +152,3 @@ export const HomeScreen = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { marginTop: 40, alignItems: 'center', marginBottom: 12 },
-  logo: { fontSize: 32, fontStyle: 'italic' },
-  // chartCarouselContainer: {
-  //   height: 350,
-  //   justifyContent: 'center',
-  // },
-  horizontalScrollView: {
-    width: width,
-  },
-  chartPage: {
-    width: width,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  divider: { height: 1, backgroundColor: '#e0e0e0', marginHorizontal: 20, marginVertical: 15 },
-  tipsContainer: { paddingHorizontal: 20, marginTop: 10, marginBottom: 20 },
-  tipsTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-  card: { justifyContent: 'center', alignItems: 'center', padding: 20, borderRadius: 15, minHeight: 120 },
-  tipText: { fontSize: 18, textAlign: 'center', fontStyle: 'italic' },
-});

@@ -162,7 +162,6 @@ export default function WeightChart() {
         />
       )}
 
-      {/* MODAL MOVIDO PARA CÁ */}
       <Modal
         animationType="slide"
         transparent={true}

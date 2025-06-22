@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,21 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-} from 'react-native';
-import { useThemeColors } from '../context/ThemeContext';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../@types/navigation';
-import { FIREBASE_DB } from '../services/firebaseConfig';
-import { useAuth } from '../context/AuthContext';
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useThemeColors } from "../context/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../@types/navigation";
+import { FIREBASE_DB } from "../services/firebaseConfig";
+import { useAuth } from "../context/AuthContext";
+import { createGeralStyles } from "../styles/Geral.style";
 
-export type FavoritesScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+export type FavoritesScreenNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>;
 
 type Folder = {
   id: string;
@@ -27,16 +31,17 @@ type Folder = {
 
 export const FavoritesScreen = () => {
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const navigation = useNavigation<FavoritesScreenNavigationProp>();
   const auth = useAuth();
   const user = auth.user;
 
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [newFolderTitle, setNewFolderTitle] = useState('');
+  const [newFolderTitle, setNewFolderTitle] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [menuVisibleId, setMenuVisibleId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const firestore = FIREBASE_DB;
 
@@ -44,21 +49,21 @@ export const FavoritesScreen = () => {
     if (!user) return;
 
     const foldersRef = firestore
-      .collection('folders')
-      .where('userId', '==', user.uid)
-      .orderBy('title');
+      .collection("folders")
+      .where("userId", "==", user.uid)
+      .orderBy("title");
 
-    const unsubscribe = foldersRef.onSnapshot(async snapshot => {
+    const unsubscribe = foldersRef.onSnapshot(async (snapshot) => {
       const fetchedFolders: Folder[] = [];
 
       for (const doc of snapshot.docs) {
-        const folderData = doc.data() as Omit<Folder, 'id'>;
+        const folderData = doc.data() as Omit<Folder, "id">;
         const folderId = doc.id;
 
         const recipesSnapshot = await firestore
-          .collection('recipes')
+          .collection("recipes")
           .doc(folderData.title)
-          .collection('items')
+          .collection("items")
           .get();
 
         fetchedFolders.push({
@@ -82,12 +87,12 @@ export const FavoritesScreen = () => {
     }, [loadFolders])
   );
 
-  const filteredFolders = folders.filter(folder =>
+  const filteredFolders = folders.filter((folder) =>
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleFolderPress = (folderTitle: string) => {
-    navigation.navigate('FolderRecipes', { folderName: folderTitle });
+    navigation.navigate("FolderRecipes", { folderName: folderTitle });
   };
 
   const handleAddOrEditFolder = async () => {
@@ -95,30 +100,30 @@ export const FavoritesScreen = () => {
 
     try {
       if (editingFolderId) {
-        await firestore.collection('folders').doc(editingFolderId).update({
+        await firestore.collection("folders").doc(editingFolderId).update({
           title: newFolderTitle.trim(),
         });
       } else {
-        await firestore.collection('folders').add({
+        await firestore.collection("folders").add({
           title: newFolderTitle.trim(),
           userId: user.uid,
         });
       }
 
-      setNewFolderTitle('');
+      setNewFolderTitle("");
       setShowInput(false);
       setEditingFolderId(null);
     } catch (error) {
-      console.error('Erro ao salvar pasta:', error);
+      console.error("Erro ao salvar pasta:", error);
     }
   };
 
   const handleDeleteFolder = async (id: string) => {
     try {
-      await firestore.collection('folders').doc(id).delete();
+      await firestore.collection("folders").doc(id).delete();
       setMenuVisibleId(null);
     } catch (error) {
-      console.error('Erro ao deletar pasta:', error);
+      console.error("Erro ao deletar pasta:", error);
     }
   };
 
@@ -130,28 +135,30 @@ export const FavoritesScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <View style={styles.searchContainer}>
-          <View style={[styles.searchBox, { backgroundColor: colors.iconBackground }]}>
-            <Ionicons name="search" size={20} color={colors.icon} />
+          <View style={styles.searchBox}>
+            <Ionicons name="search" size={20} color="#C8C9D2" />
             <TextInput
               placeholder="Busque suas pastas"
-              placeholderTextColor={colors.textSecondary || '#999'}
-              style={[styles.input, { color: colors.text }]}
-              keyboardAppearance={colors.background === '#1a1a1a' ? 'dark' : 'light'}
+              placeholderTextColor="#C8C9D2"
+              style={[styles.searchInput, { width: "100%", paddingLeft: 8 }]}
+              keyboardAppearance={
+                colors.background === "#1a1a1a" ? "dark" : "light"
+              }
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.iconBackground }]}
+            style={[styles.addFolderButton, { backgroundColor: "#41424A" }]}
             onPress={() => {
               setShowInput(true);
               setEditingFolderId(null);
             }}
           >
-            <Ionicons name="add" size={24} color={colors.icon} />
+            <Ionicons name="add" size={24} color="#C8C9D2" />
           </TouchableOpacity>
         </View>
 
@@ -159,21 +166,21 @@ export const FavoritesScreen = () => {
           <View style={styles.newFolderContainer}>
             <TextInput
               placeholder="Nome da pasta"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={styles.inputPlaceholder.color}
               value={newFolderTitle}
               onChangeText={setNewFolderTitle}
-              style={[
-                styles.newFolderInput,
-                { color: colors.text, borderColor: colors.textSecondary },
-              ]}
+              style={styles.newFolderInput}
             />
-            <TouchableOpacity onPress={handleAddOrEditFolder} style={styles.iconButton}>
+            <TouchableOpacity
+              onPress={handleAddOrEditFolder}
+              style={styles.iconButton}
+            >
               <Ionicons name="checkmark-circle" size={28} color="green" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
                 setShowInput(false);
-                setNewFolderTitle('');
+                setNewFolderTitle("");
                 setEditingFolderId(null);
               }}
               style={styles.iconButton}
@@ -187,36 +194,48 @@ export const FavoritesScreen = () => {
           <FlatList
             data={filteredFolders}
             numColumns={2}
-            keyExtractor={item => item.id}
+            keyExtractor={(item) => item.id}
             contentContainerStyle={styles.grid}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={[styles.folderCard, { backgroundColor: colors.iconBackground }]}
+                style={styles.folderCard}
                 onPress={() => handleFolderPress(item.title)}
                 activeOpacity={0.9}
               >
-                <Text style={[styles.folderTitle, { color: colors.text }]}>
-                  {item.title}
-                </Text>
-                <Text style={[styles.folderCount, { color: colors.textSecondary }]}>
-                  {item.count ?? 0} receita{item.count === 1 ? '' : 's'}
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{item.title}</Text>
+                <Text style={styles.label}>
+                  {item.count ?? 0} receita{item.count === 1 ? "" : "s"}
                 </Text>
                 <TouchableOpacity
                   style={styles.menuButton}
                   onPress={() =>
-                    setMenuVisibleId(prev => (prev === item.id ? null : item.id))
+                    setMenuVisibleId((prev) =>
+                      prev === item.id ? null : item.id
+                    )
                   }
                 >
-                  <Ionicons name="ellipsis-vertical" size={18} color={colors.icon} />
+                  <Ionicons
+                    name="ellipsis-vertical"
+                    size={18}
+                    color="#C8C9D2"
+                  />
                 </TouchableOpacity>
 
                 {menuVisibleId === item.id && (
                   <View style={styles.menuOptions}>
-                    <TouchableOpacity onPress={() => handleEditFolder(item.id, item.title)}>
-                      <Text style={[styles.menuItem, { color: colors.text }]}>Editar</Text>
+                    <TouchableOpacity
+                      onPress={() => handleEditFolder(item.id, item.title)}
+                    >
+                      <Text style={[styles.menuItem, { color: colors.text }]}>
+                        Editar
+                      </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteFolder(item.id)}>
-                      <Text style={[styles.menuItem, { color: 'red' }]}>Excluir</Text>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteFolder(item.id)}
+                    >
+                      <Text style={[styles.menuItem, { color: "red" }]}>
+                        Excluir
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -224,8 +243,10 @@ export const FavoritesScreen = () => {
             )}
           />
         ) : (
-          <View style={{ alignItems: 'center', marginTop: 40 }}>
-            <Text style={{ color: colors.textSecondary }}>Nenhuma pasta encontrada</Text>
+          <View style={{ alignItems: "center", marginTop: 40 }}>
+            <Text style={{ color: colors.textSecondary }}>
+              Nenhuma pasta encontrada
+            </Text>
           </View>
         )}
       </View>
@@ -234,49 +255,6 @@ export const FavoritesScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  searchBox: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    height: 40,
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  newFolderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  newFolderInput: {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
   iconButton: {
     marginLeft: 8,
   },
@@ -288,29 +266,29 @@ const styles = StyleSheet.create({
     margin: 8,
     padding: 16,
     borderRadius: 12,
-    position: 'relative',
+    position: "relative",
     minWidth: 140,
-    maxWidth: '48%',
+    maxWidth: "48%",
     aspectRatio: 1,
   },
   folderTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   folderCount: {
     fontSize: 14,
   },
   menuButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
   },
   menuOptions: {
-    position: 'absolute',
+    position: "absolute",
     top: 40,
     right: 8,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 8,
     elevation: 5,
     padding: 6,
