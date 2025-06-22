@@ -226,14 +226,14 @@ export const FavoritesScreen = () => {
                     <TouchableOpacity
                       onPress={() => handleEditFolder(item.id, item.title)}
                     >
-                      <Text style={[styles.menuItem, { color: colors.text }]}>
+                      <Text style={[styles.label, { color: "#C8C9D2", paddingHorizontal: 8, paddingVertical: 4 }]}>
                         Editar
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleDeleteFolder(item.id)}
                     >
-                      <Text style={[styles.menuItem, { color: "red" }]}>
+                      <Text style={[styles.label, { color: "red", paddingHorizontal: 8, paddingVertical: 4}]}>
                         Excluir
                       </Text>
                     </TouchableOpacity>

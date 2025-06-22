@@ -568,7 +568,7 @@ export const createGeralStyles = (colors: any) =>
       position: "absolute",
       top: 40,
       right: 8,
-      backgroundColor: "white",
+      backgroundColor: "#282A30",
       borderRadius: 8,
       elevation: 5,
       padding: 6,
