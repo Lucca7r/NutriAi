@@ -84,12 +84,10 @@ export default function WeightChart() {
           data.push({
             value: weightEntry.weight,
             date: weightEntry.date.toDate().toISOString(),
-            label: weightEntry.date
-              .toDate()
-              .toLocaleDateString("pt-BR", {
-                day: "numeric",
-                month: "numeric",
-              }),
+            label: weightEntry.date.toDate().toLocaleDateString("pt-BR", {
+              day: "numeric",
+              month: "numeric",
+            }),
           });
         });
         setChartData(data);
@@ -112,7 +110,7 @@ export default function WeightChart() {
   return (
     <View style={styles.calorieContainer}>
       <View style={styles.header}>
-        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+        <Text style={[styles.sectionTitle, { marginBottom: 8 }]}>
           Evolução do Peso
         </Text>
         <TouchableOpacity
@@ -175,20 +173,10 @@ export default function WeightChart() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalOverlay}
         >
-          <View
-            style={[
-              styles.modalView,
-              { backgroundColor: colors.iconBackground },
-            ]}
-          >
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Qual seu peso hoje?
-            </Text>
+          <View style={styles.modalView}>
+            <Text style={styles.sectionTitle}>Qual seu peso hoje?</Text>
             <TextInput
-              style={[
-                styles.input,
-                { color: colors.text, borderColor: colors.iconInactive },
-              ]}
+              style={styles.input}
               placeholder="Ex: 75,5"
               placeholderTextColor={colors.textSecondary}
               keyboardType="numeric"
@@ -196,12 +184,20 @@ export default function WeightChart() {
               onChangeText={setCurrentWeight}
             />
             <View style={styles.modalButtons}>
-              <Button
-                title="Cancelar"
+              <TouchableOpacity
+                style={styles.button}
                 onPress={() => setModalVisible(false)}
-                color={colors.primary}
-              />
-              <Button title="Salvar" onPress={handleSaveWeight} />
+                activeOpacity={0.7}
+              >
+                <Text style={styles.saveButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleSaveWeight}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.saveButtonText}>Salvar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
