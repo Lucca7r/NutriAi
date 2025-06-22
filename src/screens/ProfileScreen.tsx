@@ -6,6 +6,7 @@ import {
   Switch,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
 import { useTheme, useThemeColors } from "../context/ThemeContext";
 import ProfileHeader from "../components/ProfileHeader";
@@ -16,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { signOut } from "firebase/auth";
 import { FIREBASE_AUTH } from "../services/firebaseConfig";
 import { Alert } from "react-native";
+import { createGeralStyles } from "../styles/Geral.style";
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,6 +27,7 @@ type ProfileScreenNavigationProp = NativeStackNavigationProp<
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useTheme();
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const isDark = theme === "dark";
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
@@ -44,56 +47,31 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
-      <TouchableOpacity
-        style={styles.settingsButton}
-        onPress={handleNavigateToEdit}
-      >
-        <Ionicons name="settings-outline" size={28} color={colors.icon} />
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.profileContainer}>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={handleNavigateToEdit}
+        >
+          <Ionicons name="settings-outline" size={28} color="#C8C9D2" />
+        </TouchableOpacity>
 
-      <ProfileHeader />
+        <ProfileHeader />
 
-      <View style={styles.section}>
+        {/* <View style={styles.section}>
         <Text style={[styles.label, { color: colors.text }]}>Modo Escuro</Text>
         <Switch value={isDark} onValueChange={toggleTheme} />
-      </View>
-      <View style={styles.section}>
-        <TouchableOpacity onPress={handleLogout}>
-          <Text style={[styles.link, { color: colors.icon }]}>
-            Sair da Conta
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </View> */}
+        <View>
+          <TouchableOpacity onPress={handleLogout}>
+            <Text
+              style={[styles.label, { textAlign: "center", marginTop: 20 }]}
+            >
+              Sair da Conta
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-// Estilos foram simplificados, removendo os do modal e do botão de registro
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  settingsButton: {
-    position: "absolute",
-    top: 60,
-    right: 24,
-    zIndex: 1,
-  },
-  section: {
-    marginTop: 30,
-    paddingHorizontal: 12,
-    marginBottom: 40, // Adicionado espaço no final
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  link: {
-    fontSize: 16,
-    paddingVertical: 10,
-  },
-});

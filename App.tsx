@@ -1,14 +1,16 @@
 // App.tsx
-import React from 'react';
-import AppNavigator from './src/navigation';
-import { ThemeProvider } from './src/context/ThemeContext';
-import { AuthProvider } from './src/context/AuthContext'; // Importe o AuthProvider
+import React from "react";
+import AppNavigator from "./src/navigation";
+import { ThemeProvider } from "./src/context/ThemeContext";
+import { AuthProvider } from "./src/context/AuthContext"; // Importe o AuthProvider
 // App.tsx
 import {
   useFonts,
   Poppins_400Regular,
   Poppins_400Regular_Italic,
   Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_600SemiBold_Italic,
   Poppins_500Medium_Italic,
   Poppins_700Bold,
   Poppins_700Bold_Italic,
@@ -22,6 +24,8 @@ export default function App() {
     Poppins_400Regular_Italic,
     Poppins_500Medium,
     Poppins_500Medium_Italic,
+    Poppins_600SemiBold,
+    Poppins_600SemiBold_Italic,
     Poppins_700Bold,
     Poppins_700Bold_Italic,
   });

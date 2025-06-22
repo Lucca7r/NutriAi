@@ -130,7 +130,6 @@ export const createGeralStyles = (colors: any) =>
       color: "#C8C9D2",
       marginBottom: 24,
       fontWeight: "500",
-
     },
     inputFocused: {
       borderColor: "#4CAF50",
@@ -208,6 +207,17 @@ export const createGeralStyles = (colors: any) =>
       marginTop: "auto",
       elevation: 8,
     },
+    buttonOutline: {
+      fontFamily: "Poppins_500Medium",
+      borderRadius: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 18,
+      borderWidth: 1,
+      borderColor: "#D9D9D9",
+    },
     buttonDisabled: {
       backgroundColor: "#2A2A2A",
       shadowOpacity: 0,
@@ -218,6 +228,13 @@ export const createGeralStyles = (colors: any) =>
       fontSize: 18,
       fontWeight: "600",
       color: "#000000",
+      letterSpacing: 0.5,
+    },
+    buttonTextOutline: {
+      fontFamily: "Poppins_500Medium",
+      fontSize: 18,
+      fontWeight: "600",
+      color: "#D9D9D9",
       letterSpacing: 0.5,
     },
     buttonTextDisabled: {
@@ -577,5 +594,38 @@ export const createGeralStyles = (colors: any) =>
     menuItem: {
       padding: 6,
       fontSize: 14,
+    },
+    // Profile
+    profileContainer: {
+      flex: 1,
+      paddingTop: 20,
+      paddingHorizontal: 24,
+      paddingBottom: 40,
+    },
+    settingsButton: {
+      position: "absolute",
+      top: 60,
+      right: 20,
+      zIndex: 1,
+    },
+    profileSection: {
+      marginTop: 30,
+    },
+    avatarContainer: {
+      marginTop: 50,
+      alignItems: "center",
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 40,
+      // borderWidth: 2,
+    },
+    userName: {
+      fontFamily: "Poppins_600SemiBold",
+      color: "#C8C9D2",
+      fontSize: 24,
+      fontWeight: "600",
+      marginTop: 12,
     },
   });
