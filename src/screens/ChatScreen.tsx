@@ -131,7 +131,6 @@ export const ChatScreen = () => {
       <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={100}
       >
         {/* Lista de chats anteriores */}
         <View style={styles.headerChat}>

@@ -126,7 +126,7 @@ const CadastroScreen = ({ navigation }: CadastroScreenProps) => {
             onPress={handleCadastro} // Use a nova função aqui
             disabled={isLoading} // Desabilita o botão durante o carregamento
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { fontSize: 18 }]}>
               {isLoading ? "Criando..." : "Criar Conta"}
             </Text>
           </TouchableOpacity>

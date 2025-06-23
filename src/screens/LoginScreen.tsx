@@ -87,7 +87,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
               secureTextEntry
             />
             <TouchableOpacity style={[styles.button, { marginTop: 20 }]} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Entrar</Text>
+              <Text style={[styles.buttonText, { fontSize: 18 }]}>Entrar</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.googleButton}
