@@ -59,28 +59,40 @@ export default function AppNavigator() {
               component={BottomTabs}
               options={{ headerShown: false }}
             />
-            <Stack.Screen 
+            <Stack.Screen
               name="DailyLog"
               component={DailyLogScreen}
               options={{
                 headerShown: true,
                 title: "Refeições do Dia",
+                headerStyle: { backgroundColor: "#282A30" },
+                headerTintColor: "#C8C9D2",
+                headerTitleStyle: {
+                  fontFamily: "Poppins_600SemiBold",
+                  fontSize: 18,
+                },
               }}
             />
             <Stack.Screen
               name="EditProfile"
               component={EditProfileScreen}
               options={{
-                presentation: "modal", // Efeito de tela subindo
-                headerShown: true, // Mostra um cabeçalho para poder fechar
+                presentation: "modal",
+                headerShown: true,
                 title: "Editar Perfil",
+                headerStyle: { backgroundColor: "#282A30" },
+                headerTintColor: "#C8C9D2",
+                headerTitleStyle: {
+                  fontFamily: "Poppins_600SemiBold",
+                  fontSize: 18,
+                },
               }}
             />
-            <Stack.Screen 
-              name="FolderRecipes" 
-              component={FolderRecipesScreen} 
-              options={{headerShown: false}}
-              />
+            <Stack.Screen
+              name="FolderRecipes"
+              component={FolderRecipesScreen}
+              options={{ headerShown: false }}
+            />
           </>
         ) : (
           <>
