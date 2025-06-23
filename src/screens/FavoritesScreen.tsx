@@ -202,7 +202,9 @@ export const FavoritesScreen = () => {
                 onPress={() => handleFolderPress(item.title)}
                 activeOpacity={0.9}
               >
-                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{item.title}</Text>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                  {item.title}
+                </Text>
                 <Text style={styles.label}>
                   {item.count ?? 0} receita{item.count === 1 ? "" : "s"}
                 </Text>
@@ -226,14 +228,32 @@ export const FavoritesScreen = () => {
                     <TouchableOpacity
                       onPress={() => handleEditFolder(item.id, item.title)}
                     >
-                      <Text style={[styles.label, { color: "#C8C9D2", paddingHorizontal: 8, paddingVertical: 4 }]}>
+                      <Text
+                        style={[
+                          styles.label,
+                          {
+                            color: "#C8C9D2",
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          },
+                        ]}
+                      >
                         Editar
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleDeleteFolder(item.id)}
                     >
-                      <Text style={[styles.label, { color: "red", paddingHorizontal: 8, paddingVertical: 4}]}>
+                      <Text
+                        style={[
+                          styles.label,
+                          {
+                            color: "red",
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          },
+                        ]}
+                      >
                         Excluir
                       </Text>
                     </TouchableOpacity>

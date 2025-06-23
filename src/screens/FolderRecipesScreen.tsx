@@ -26,6 +26,7 @@ import {
   doc,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '../services/firebaseConfig';
+import { createGeralStyles } from '../styles/Geral.style';
 
 type Recipe = {
   id?: string;
@@ -38,6 +39,7 @@ export default function FolderRecipesScreen() {
   const navigation = useNavigation();
   const { folderName } = route.params as { folderName: string };
   const colors = useThemeColors();
+  const styles = createGeralStyles(colors);
   const authContext = useContext(AuthContext);
 
   const userProfile: UserProfile | null = authContext.user
@@ -141,20 +143,20 @@ export default function FolderRecipesScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.folderHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.recipeBackButton}>
+          <Ionicons name="arrow-back" size={24} color="#C8C9D2" />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Pasta: {folderName}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: "center", marginBottom: 0 }]}>{folderName}</Text>
       </View>
 
       {adding && (
         <View style={[styles.inputContainer, { borderColor: colors.textSecondary || '#888' }]}>
           <TextInput
-            style={[styles.input, { color: colors.text }]}
+            style={styles.input}
             placeholder="Descreva sua receita (ex: receita de bolo de chocolate)"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={styles.inputPlaceholder.color}
             value={inputText}
             onChangeText={setInputText}
             editable={!generating}
@@ -163,18 +165,7 @@ export default function FolderRecipesScreen() {
           {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <View style={styles.buttonsRow}>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: 'green' }]}
-              onPress={handleAddRecipe}
-              disabled={generating}
-            >
-              {generating ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Gerar Receita</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: 'red' }]}
+              style={styles.button}
               onPress={() => {
                 setAdding(false);
                 setInputText('');
@@ -182,7 +173,18 @@ export default function FolderRecipesScreen() {
               }}
               disabled={generating}
             >
-              <Text style={styles.buttonText}>Cancelar</Text>
+              <Text style={styles.saveButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleAddRecipe}
+              disabled={generating}
+            >
+              {generating ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveButtonText}>Gerar Receita</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -193,24 +195,24 @@ export default function FolderRecipesScreen() {
         keyExtractor={(item) => item.id || item.createdAt.toMillis().toString()}
         contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.iconBackground }]}>
+          <View style={styles.recipeCard}>
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => item.id && deleteRecipe(item.id)}
             >
               <Ionicons name="trash" size={20} color="red" />
             </TouchableOpacity>
-            <Text style={[styles.recipeText, { color: colors.text }]}>{item.text}</Text>
+            <Text style={[styles.recipeText, { color: "#FFF" }]}>{item.text}</Text>
           </View>
         )}
       />
 
       {!adding && (
         <TouchableOpacity
-          style={[styles.floatingButton, { backgroundColor: colors.primary }]}
+          style={styles.floatingButton}
           onPress={() => setAdding(true)}
         >
-          <Ionicons name="add" size={28} color="#fff" />
+          <Ionicons name="add" size={28} color="#000" />
         </TouchableOpacity>
       )}
     </SafeAreaView>

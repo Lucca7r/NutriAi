@@ -345,7 +345,7 @@ export const createGeralStyles = (colors: any) =>
       lineHeight: 24,
       textDecorationLine: "underline",
     },
-    // home
+    // Home
     horizontalScrollView: {
       width: width,
     },
@@ -504,6 +504,45 @@ export const createGeralStyles = (colors: any) =>
       color: "#000000",
       letterSpacing: 0.5,
     },
+    mealCard: {
+      backgroundColor: "#53545D",
+      // backgroundColor: "#ffffff",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+    },
+    mealInfo: {
+      flex: 1,
+      marginRight: 8,
+    },
+    mealActions: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    mealType: {
+      fontFamily: "Poppins_600SemiBold",
+      color: "#FFFFFF",
+      fontSize: 16,
+    },
+    mealDescription: {
+      fontFamily: "Poppins_400Regular",
+      color: "#C8C9D2",
+      fontSize: 14,
+      marginTop: 4,
+    },
+    mealCalories: {
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    emptyText: {
+      textAlign: "center",
+      marginTop: 50,
+      fontSize: 16,
+    },
+
     // Favorites
     searchContainer: {
       flexDirection: "row",
@@ -563,11 +602,9 @@ export const createGeralStyles = (colors: any) =>
       fontSize: 16,
       color: "#C8C9D2",
       marginBottom: 24,
-      fontWeight: "500",
       width: "60%",
       marginHorizontal: 10,
     },
-
     iconButton: {
       marginLeft: 8,
     },
@@ -607,6 +644,75 @@ export const createGeralStyles = (colors: any) =>
       padding: 6,
       fontSize: 14,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    folderHeader: {
+      flexDirection: "row",
+      // justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    recipeBackButton: {
+      marginRight: 12,
+      color: "#C8C9D2",
+    },
+    inputContainer: {
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      padding: 12,
+    },
+    error: {
+      color: "red",
+      marginTop: 6,
+    },
+    buttonsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 12,
+    },
+    recipeCard: {
+      marginHorizontal: 16,
+      marginVertical: 6,
+      padding: 16,
+      borderRadius: 8,
+      position: "relative",
+      elevation: 2,
+      backgroundColor: "#53545D",
+    },
+    recipeText: {
+      fontFamily: "Poppins_400Regular",
+      fontSize: 14,
+    },
+    deleteButton: {
+      position: "absolute",
+      right: 8,
+      top: 8,
+      padding: 4,
+      zIndex: 1,
+    },
+    floatingButton: {
+      position: "absolute",
+      right: 20,
+      bottom: 30,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 5,
+      backgroundColor: "#D9D9D9",
+    },
+
     // Profile
     profileContainer: {
       flex: 1,
@@ -660,7 +766,6 @@ export const createGeralStyles = (colors: any) =>
       padding: 12,
       marginHorizontal: 16,
       marginBottom: 10,
-
     },
     buttonTextNewChat: {
       fontFamily: "Poppins_500Medium",

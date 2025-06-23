@@ -173,29 +173,23 @@ export default function EditProfileScreen() {
                     />
                     <View style={styles.modalButtons}>
                       <TouchableOpacity
-                        style={[
-                          styles.button,
-                          { backgroundColor: "#e53935" },
-                        ]} // vermelho
+                        style={styles.button}
                         onPress={onClose}
                       >
                         <Text
-                          style={[styles.saveButtonText, { color: "white" }]}
+                          style={styles.saveButtonText}
                         >
                           Cancelar
                         </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[
-                          styles.button,
-                          { backgroundColor: "#2e7d32" },
-                        ]} // verde escuro
+                        style={styles.button}
                         onPress={() => {
                           chageEmail(newEmail);
                         }}
                       >
                         <Text
-                          style={[styles.saveButtonText, { color: "white" }]}
+                          style={styles.saveButtonText}
                         >
                           Confirmar
                         </Text>
@@ -223,4 +217,3 @@ export default function EditProfileScreen() {
     </SafeAreaView>
   );
 }
-
