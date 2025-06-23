@@ -143,7 +143,7 @@ export default function FolderRecipesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { paddingHorizontal: 24, paddingBottom: 45 }]}>
       <View style={styles.folderHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.recipeBackButton}>
           <Ionicons name="arrow-back" size={24} color="#C8C9D2" />
@@ -166,17 +166,6 @@ export default function FolderRecipesScreen() {
           <View style={styles.buttonsRow}>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => {
-                setAdding(false);
-                setInputText('');
-                setErrorMsg(null);
-              }}
-              disabled={generating}
-            >
-              <Text style={styles.saveButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
               onPress={handleAddRecipe}
               disabled={generating}
             >
@@ -185,6 +174,17 @@ export default function FolderRecipesScreen() {
               ) : (
                 <Text style={styles.saveButtonText}>Gerar Receita</Text>
               )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                setAdding(false);
+                setInputText('');
+                setErrorMsg(null);
+              }}
+              disabled={generating}
+            >
+              <Text style={styles.saveButtonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>

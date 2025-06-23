@@ -29,7 +29,7 @@ export default function BottomTabs() {
         tabBarShowLabel: false,
         tabBarStyle: {
           ...styles.tabBar,
-          backgroundColor: isDark ? "#2c2c2e" : "#41424A",
+          backgroundColor: "#41424A",
 
         },
         tabBarIcon: ({ focused }: { focused: boolean }) => {
@@ -57,7 +57,7 @@ export default function BottomTabs() {
               <View
                 style={[
                   styles.iconWrapper,
-                  { backgroundColor: isDark ? "#41424A" : "#53545D" },
+                  { backgroundColor: "#53545D" },
 
                   focused && styles.activeIcon,
                 ]}
@@ -65,7 +65,7 @@ export default function BottomTabs() {
                 <IconComponent
                   width={24}
                   height={24}
-                  fill={focused ? (isDark ? "#fff" : "#000") : "#ccc"}
+                  fill={focused ? "#000" : "#ccc"}
                 />
               </View>
             );

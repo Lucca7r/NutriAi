@@ -202,7 +202,7 @@ export const FavoritesScreen = () => {
                 onPress={() => handleFolderPress(item.title)}
                 activeOpacity={0.9}
               >
-                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                <Text style={[styles.sectionTitle, { marginBottom: 0, fontSize: 18 }]}>
                   {item.title}
                 </Text>
                 <Text style={styles.label}>

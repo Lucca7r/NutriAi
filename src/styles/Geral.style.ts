@@ -237,14 +237,14 @@ export const createGeralStyles = (colors: any) =>
     },
     buttonText: {
       fontFamily: "Poppins_500Medium",
-      fontSize: 18,
+      fontSize: 14,
       fontWeight: "600",
       color: "#000000",
       letterSpacing: 0.5,
     },
     buttonTextOutline: {
       fontFamily: "Poppins_500Medium",
-      fontSize: 18,
+      fontSize: 14,
       fontWeight: "600",
       color: "#D9D9D9",
       letterSpacing: 0.5,
@@ -295,7 +295,7 @@ export const createGeralStyles = (colors: any) =>
       zIndex: 1,
     },
     skipButtonText: {
-      fontSize: 16,
+      fontSize: 14,
       color: "#888",
       fontWeight: "500",
     },
@@ -393,7 +393,7 @@ export const createGeralStyles = (colors: any) =>
       color: "#FFFFFF",
     },
     tipText: {
-      fontSize: 18,
+      fontSize: 16,
       color: "#C8C9D2",
       textAlign: "center",
       fontStyle: "italic",
@@ -449,6 +449,7 @@ export const createGeralStyles = (colors: any) =>
       justifyContent: "space-between",
       width: "100%",
       marginTop: 20,
+      gap: 10,
     },
     tooltip: {
       backgroundColor: "rgba(0,0,0,0.8)",
@@ -472,7 +473,7 @@ export const createGeralStyles = (colors: any) =>
       fontFamily: "Poppins_400Regular",
       flexDirection: "row",
       flexWrap: "wrap",
-      justifyContent: "flex-start",
+      justifyContent: "center",
       marginBottom: 5,
     },
     mealTypeButton: {
@@ -499,7 +500,7 @@ export const createGeralStyles = (colors: any) =>
     },
     saveButtonText: {
       fontFamily: "Poppins_500Medium",
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: "600",
       color: "#000000",
       letterSpacing: 0.5,
@@ -547,6 +548,7 @@ export const createGeralStyles = (colors: any) =>
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
+      marginTop: 20,
       marginBottom: 16,
       marginVertical: 8,
     },
@@ -672,9 +674,10 @@ export const createGeralStyles = (colors: any) =>
       marginTop: 6,
     },
     buttonsRow: {
-      flexDirection: "row",
+      flexDirection: "column",
       justifyContent: "space-between",
       marginTop: 12,
+      gap: 10,
     },
     recipeCard: {
       marginHorizontal: 16,
@@ -786,7 +789,7 @@ export const createGeralStyles = (colors: any) =>
       borderRadius: 12,
       borderWidth: 1,
       marginHorizontal: 16,
-      marginBottom: 116,
+      marginBottom: 136,
       paddingHorizontal: 12,
       height: 60,
       borderColor: "#D9D9D9",

@@ -130,7 +130,7 @@ export const HomeScreen = () => {
           <View style={styles.divider} />
 
           <View style={styles.tipsContainer}>
-            <Text style={styles.sectionTitle}>Dica do Dia</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]} >Dica do Dia</Text>
             <View style={styles.card}>
               {loadingTips ? (
                 <ActivityIndicator color="#000" />
