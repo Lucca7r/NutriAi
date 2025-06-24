@@ -77,7 +77,15 @@ export const ChatScreen = () => {
     setLoadingAI(true);
 
     try {
-      const responseText = await sendMessageToAI(input, profile);
+      const historyLimit = 5;
+      const history =
+        messages.length >= historyLimit
+          ? messages.slice(-historyLimit)
+          : messages;
+      const responseText = await sendMessageToAI(input, profile, [
+        ...history,
+        userMsg,
+      ]);
       const aiMsg: Message = { role: "assistant", content: responseText };
 
       await FIREBASE_DB.collection("chats")
@@ -117,8 +125,7 @@ export const ChatScreen = () => {
         styles.message,
         {
           alignSelf: item.role === "user" ? "flex-end" : "flex-start",
-          backgroundColor:
-            item.role === "user" ? "#53545D" : "#41424A",
+          backgroundColor: item.role === "user" ? "#53545D" : "#41424A",
         },
       ]}
     >
@@ -145,9 +152,7 @@ export const ChatScreen = () => {
                   padding: 10,
                   marginHorizontal: 6,
                   backgroundColor:
-                    currentChatId === item.id
-                      ? "#D9D9D9"
-                      : "transparent",
+                    currentChatId === item.id ? "#D9D9D9" : "transparent",
                   borderWidth: 1,
                   borderColor: "#D9D9D9",
                   borderRadius: 10,
@@ -157,7 +162,11 @@ export const ChatScreen = () => {
                 <Text
                   style={[
                     styles.buttonText,
-                    { fontSize: 12, textAlign: "center", color: currentChatId === item.id ? '#000' : "#C8C9D2" },
+                    {
+                      fontSize: 12,
+                      textAlign: "center",
+                      color: currentChatId === item.id ? "#000" : "#C8C9D2",
+                    },
                   ]}
                 >
                   {`Chat ${index + 1}`}
@@ -187,10 +196,7 @@ export const ChatScreen = () => {
           <TextInput
             placeholder="Digite sua dúvida..."
             placeholderTextColor={colors.iconInactive}
-            style={[
-              styles.searchInput,
-              { backgroundColor: "transparent" },
-            ]}
+            style={[styles.searchInput, { backgroundColor: "transparent" }]}
             value={input}
             onChangeText={setInput}
             editable={!loadingAI}

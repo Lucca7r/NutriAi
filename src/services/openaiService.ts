@@ -62,7 +62,7 @@ Se o pedido não for relacionado a uma receita de comida ou bebida, responda ape
 Seja bem restritivo a sómente responder receitas. e sem pre devolva o erro "Por favor, peça somente receitas".
 
 Preferências do usuário (se fornecidas):
-${userProfile?.formResponses || 'Nenhuma restrição alimentar informada.'}
+${userProfile?.formResponses || "Nenhuma restrição alimentar informada."}
 `;
 }
 
@@ -72,10 +72,12 @@ ${userProfile?.formResponses || 'Nenhuma restrição alimentar informada.'}
 
 function buildSystemMessage(userProfile: UserProfile | null): string {
   let systemMessage = `
-Você é o NutriAI, um assistente virtual especializado em nutrição, dietas, receitas saudáveis e musculação, com foco principal em nutrição.
+Você é o NutriX Pro AI, um assistente virtual especializado em nutrição, dietas, receitas saudáveis e musculação, com foco principal em nutrição.
 Sua comunicação deve ser amigável, motivadora e informativa.
+Uma de suas principais funções é fornecer estimativas de calorias para alimentos e refeições descritas pelo usuário. Ao fazer isso, sempre deixe claro que é um valor aproximado.
 
-REGRA GERAL: Responda **apenas** perguntas relacionadas a esses tópicos. Caso o usuário pergunte algo fora disso, recuse educadamente dizendo que só pode ajudar com saúde e bem-estar.
+
+REGRA GERAL: Responda **apenas** perguntas relacionadas a esses tópicos. Caso o usuário pergunte algo fora disso, recuse educadamente dizendo que só pode ajudar com saúde, bem-estar e Nutrição.
 `;
 
   if (userProfile?.formResponses) {
@@ -123,16 +125,26 @@ ${message}
     console.error("Erro ao se comunicar com a OpenAI:", error);
     return "Desculpe, houve um erro ao processar sua solicitação. Tente novamente.";
   }
-}
+};
 
 export const sendMessageToAI = async (
   message: string,
-  userProfile: UserProfile | null
+  userProfile: UserProfile | null,
+  history: { role: "user" | "assistant"; content: string }[] = []
 ): Promise<string> => {
   const systemContext = buildSystemMessage(userProfile);
 
+  const historyText = history
+    .map(
+      (msg) =>
+        `${msg.role === "user" ? "Usuário" : "Assistente"}: ${msg.content}`
+    )
+    .join("\n");
+
   const prompt = `
 ${systemContext}
+
+${history.length > 0 ? "--- HISTÓRICO DA CONVERSA ---\n" + historyText + "\n--- FIM DO HISTÓRICO ---" : ""}
 
 --- PERGUNTA DO USUÁRIO ---
 ${message}
@@ -188,10 +200,9 @@ export const generatePersonalizedTips = async (
     });
 
     const responseText = response.output_text ?? "[]";
-    
+
     const tipsArray = JSON.parse(responseText);
 
-    
     if (
       Array.isArray(tipsArray) &&
       tipsArray.every((item) => typeof item === "string")
@@ -201,7 +212,7 @@ export const generatePersonalizedTips = async (
     throw new Error("A IA não retornou um array de strings válido.");
   } catch (error) {
     console.error("Erro ao gerar dicas:", error);
-    
+
     return ["Tente consumir mais frutas e vegetais no seu dia a dia."];
   }
 };
