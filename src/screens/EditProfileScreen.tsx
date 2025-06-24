@@ -3,25 +3,25 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
-  Platform,
   Modal,
+  Image, // Importado
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
-import { FIREBASE_DB } from "../services/firebaseConfig";
+import { FIREBASE_DB, FIREBASE_STORAGE } from "../services/firebaseConfig"; // Agora importa FIREBASE_STORAGE
 import { createGeralStyles } from "../styles/Geral.style";
+import * as ImagePicker from 'expo-image-picker';
 
 export default function EditProfileScreen() {
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
-  const { user } = useAuth();
+  const { user, profile, reloadProfile } = useAuth();
 
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -29,23 +29,66 @@ export default function EditProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      const userDocRef = FIREBASE_DB.collection("users").doc(user.uid);
-      userDocRef.get().then((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          setName(data?.name || "");
-        }
-      });
+    if (profile) {
+      setName(profile.name || "");
+      setImageUri(profile.photoURL || null);
     }
-  }, [user]);
+  }, [profile]);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para escolher uma foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      setImageUri(uri); // Mostra a imagem na UI
+      await uploadImage(uri); // Inicia o upload
+    }
+  };
+
+  const uploadImage = async (uri: string) => {
+    if (!user) return;
+    setUploading(true);
+
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const storageRef = FIREBASE_STORAGE.ref().child(`profile_pictures/${user.uid}`);
+      
+      await storageRef.put(blob);
+      const downloadURL = await storageRef.getDownloadURL();
+
+      await FIREBASE_DB.collection('users').doc(user.uid).update({ photoURL: downloadURL });
+      await reloadProfile();
+
+      Alert.alert('Sucesso!', 'Sua foto de perfil foi atualizada.');
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem: ", error);
+      Alert.alert('Erro', 'Ocorreu um erro ao fazer o upload da sua foto.');
+      setImageUri(profile?.photoURL || null);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
 
-    if (password !== confirmPassword) {
+    if (password && password !== confirmPassword) {
       Alert.alert("Erro", "As senhas não coincidem");
       return;
     }
@@ -53,14 +96,13 @@ export default function EditProfileScreen() {
     setLoading(true);
 
     try {
-      await FIREBASE_DB.collection("users")
-        .doc(user.uid)
-        .set({ name }, { merge: true });
+      await FIREBASE_DB.collection("users").doc(user.uid).set({ name }, { merge: true });
 
       if (password.trim().length > 0) {
         await user.updatePassword(password);
       }
 
+      await reloadProfile();
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       setPassword("");
       setConfirmPassword("");
@@ -72,60 +114,39 @@ export default function EditProfileScreen() {
     }
   };
 
-  /* const handleEmailChange = (newEmail: string) => {
-    if (!user) return;
-
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        'Alterar e-mail',
-        'Digite o novo e-mail',
-        async (novoEmail) => {
-          if (!novoEmail) return;
-          try {
-            await user.verifyBeforeUpdateEmail(novoEmail.trim());
-            Alert.alert('Verifique seu e-mail', 'Enviamos um link de verificação para o novo endereço.');
-          } catch (error: any) {
-            console.error('Erro ao alterar e-mail: Tente fazer login novamente');
-            Alert.alert('Erro ao alterar e-mail tente fazer login novamente');
-          }
-        },
-        'plain-text'
-      );
-    } else {
-      setModalVisible(true);
-    }
-  }; */
-
-  const openModal = () => {
-    setModalVisible(true);
-  };
+  const openModal = () => setModalVisible(true);
 
   const chageEmail = async (newEmail: string) => {
-    setModalVisible(true);
-    if (!user) return;
-
-    if (newEmail) {
-      try {
-        await user.verifyBeforeUpdateEmail(newEmail.trim());
-        const message =
-          "Verifique seu e-mail, enviamos um link de verificação para o novo endereço.";
-        return message;
-      } catch (error: any) {
-        Alert.alert("Erro ao alterar e-mail: Tente fazer login novamente");
-        console.error("Erro ao alterar e-mail:", error);
-      }
+    if (!user || !newEmail) return;
+    try {
+      await user.verifyBeforeUpdateEmail(newEmail.trim());
+      Alert.alert('Verifique seu e-mail', 'Enviamos um link de verificação para o novo endereço.');
+      onClose();
+    } catch (error: any) {
+      Alert.alert("Erro ao alterar e-mail", "Tente fazer login novamente para realizar esta operação.");
+      console.error("Erro ao alterar e-mail:", error);
     }
   };
 
-  const onClose = () => {
-    setModalVisible(false);
-  };
+  const onClose = () => setModalVisible(false);
+
+  const avatarSource = imageUri 
+    ? { uri: imageUri }
+    : { uri: 'https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcSaQi2Zc9IYvTUy4j1rKPSdqm1u3DMNuW9Pq83Eim60Ahu8xs5auyY-Fne8SRP_0A7CMPL5W_jOIkMruY4' };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <Text style={styles.sectionTitle}>Editar Perfil</Text>
+
+          <TouchableOpacity onPress={pickImage} disabled={uploading} style={styles.avatarContainer}>
+              <Image source={avatarSource} style={styles.avatar} />
+              {/* Reutilizando o estilo do botão de outline para manter o design */}
+              <Text style={[styles.buttonTextOutline, { marginTop: 8 }]}>Alterar Foto</Text>
+          </TouchableOpacity>
+
+          {uploading && <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: 20 }} />}
 
           <TextInput
             placeholder="Nome"
@@ -157,7 +178,7 @@ export default function EditProfileScreen() {
           <TouchableOpacity onPress={openModal} style={styles.buttonOutline}>
             <Text style={styles.buttonTextOutline}>Alterar E-mail</Text>
           </TouchableOpacity>
-
+          
           <Modal visible={modalVisible} transparent animationType="fade">
             <TouchableWithoutFeedback onPress={onClose}>
               <View style={styles.modalOverlay}>
@@ -172,27 +193,11 @@ export default function EditProfileScreen() {
                       style={styles.input}
                     />
                     <View style={styles.modalButtons}>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={onClose}
-                      >
-                        <Text
-                          style={styles.saveButtonText}
-                        >
-                          Cancelar
-                        </Text>
+                      <TouchableOpacity style={styles.button} onPress={onClose}>
+                        <Text style={styles.saveButtonText}>Cancelar</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => {
-                          chageEmail(newEmail);
-                        }}
-                      >
-                        <Text
-                          style={styles.saveButtonText}
-                        >
-                          Confirmar
-                        </Text>
+                      <TouchableOpacity style={styles.button} onPress={() => chageEmail(newEmail)}>
+                        <Text style={styles.saveButtonText}>Confirmar</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -204,7 +209,7 @@ export default function EditProfileScreen() {
           <TouchableOpacity
             onPress={handleSave}
             style={styles.button}
-            disabled={loading}
+            disabled={loading || uploading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />

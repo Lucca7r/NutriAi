@@ -739,8 +739,16 @@ export const createGeralStyles = (colors: any) =>
     avatar: {
       width: 120,
       height: 120,
-      borderRadius: 40,
+      borderRadius: 60,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      backgroundColor: colors.card,
       // borderWidth: 2,
+    },
+    changePhotoText: {
+        color: colors.primary,
+        marginTop: 8,
+        fontSize: 16,
     },
     userName: {
       fontFamily: "Poppins_600SemiBold",

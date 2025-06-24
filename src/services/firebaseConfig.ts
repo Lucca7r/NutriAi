@@ -1,6 +1,7 @@
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import 'firebase/compat/storage';
 
 
 import {
@@ -29,3 +30,4 @@ if (!firebase.apps.length) {
 // Passo 3: Exportar o serviço de autenticação no estilo compat
 export const FIREBASE_AUTH = firebase.auth();
 export const FIREBASE_DB = firebase.firestore();
+export const FIREBASE_STORAGE = firebase.storage();
