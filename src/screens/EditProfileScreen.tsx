@@ -17,11 +17,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { FIREBASE_DB } from "../services/firebaseConfig";
 import { createGeralStyles } from "../styles/Geral.style";
+import firebase from "firebase/compat";
 
 export default function EditProfileScreen() {
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
-  const { user } = useAuth();
+  const { user, profile, setProfile } = useAuth();
 
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -56,6 +57,13 @@ export default function EditProfileScreen() {
       await FIREBASE_DB.collection("users")
         .doc(user.uid)
         .set({ name }, { merge: true });
+      
+      setProfile({
+        ...profile,
+        name,
+        email: profile?.email ?? "",
+        createdAt: profile?.createdAt ?? firebase.firestore.Timestamp.now(),
+    });
 
       if (password.trim().length > 0) {
         await user.updatePassword(password);

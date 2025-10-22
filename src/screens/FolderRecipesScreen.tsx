@@ -37,7 +37,7 @@ type Recipe = {
 export default function FolderRecipesScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { folderName } = route.params as { folderName: string };
+  const { folderId, folderName } = route.params as { folderId: string, folderName: string };
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
   const authContext = useContext(AuthContext);
@@ -57,8 +57,10 @@ export default function FolderRecipesScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
 
+  
+
   async function fetchRecipes(folder: string): Promise<Recipe[]> {
-    const ref = collection(FIREBASE_DB, 'recipes', folder, 'items');
+    const ref = collection(FIREBASE_DB, 'folders', folder, 'recipes');
     const q = query(ref, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
@@ -68,7 +70,7 @@ export default function FolderRecipesScreen() {
   }
 
   async function saveRecipe(folder: string, text: string): Promise<void> {
-    const ref = collection(FIREBASE_DB, 'recipes', folder, 'items');
+    const ref = collection(FIREBASE_DB, 'folders', folder, 'recipes');
     await addDoc(ref, {
       text,
       createdAt: Timestamp.now(),
@@ -77,7 +79,7 @@ export default function FolderRecipesScreen() {
 
   async function deleteRecipe(id: string) {
     try {
-      const recipeRef = doc(FIREBASE_DB, 'recipes', folderName, 'items', id);
+      const recipeRef = doc(FIREBASE_DB, 'folders', folderId, 'recipes', id);
       await deleteDoc(recipeRef);
       setRecipes((prev) => prev.filter((r) => r.id !== id));
     } catch (error) {
@@ -89,7 +91,7 @@ export default function FolderRecipesScreen() {
     async function loadRecipes() {
       setLoading(true);
       try {
-        const data = await fetchRecipes(folderName);
+        const data = await fetchRecipes(folderId);
         setRecipes(data);
       } catch (e) {
         console.error('Erro ao buscar receitas:', e);
@@ -116,7 +118,9 @@ export default function FolderRecipesScreen() {
         return;
       }
 
-      await saveRecipe(folderName, result);
+      console.log('result', result)
+
+      await saveRecipe(folderId, result);
       const newRecipe: Recipe = {
         text: result,
         createdAt: Timestamp.now(),

@@ -62,10 +62,10 @@ export default function ProfileScreen() {
         <Text style={[styles.label, { color: colors.text }]}>Modo Escuro</Text>
         <Switch value={isDark} onValueChange={toggleTheme} />
       </View> */}
-        <View>
-          <TouchableOpacity onPress={handleLogout}>
+        <View style={{alignItems: "center"}}>
+          <TouchableOpacity onPress={handleLogout} >
             <Text
-              style={[styles.label, { textAlign: "center", marginTop: 20 }]}
+              style={[styles.label, { marginTop: 100, textAlign: "center", backgroundColor: 'red', borderRadius: 10, width: 150, padding: 12}]}
             >
               Sair da Conta
             </Text>
