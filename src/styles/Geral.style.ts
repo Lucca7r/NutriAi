@@ -735,6 +735,7 @@ export const createGeralStyles = (colors: any) =>
     avatarContainer: {
       marginTop: 50,
       alignItems: "center",
+      width: "100%",
     },
     avatar: {
       width: 120,
@@ -801,4 +802,22 @@ export const createGeralStyles = (colors: any) =>
       paddingVertical: 10,
       borderRadius: 12,
     },
+
+    profileImageContainer: {
+  alignItems: 'center',
+  marginBottom: 20,
+},
+profileImage: {
+  width: 120,
+  height: 120,
+  borderRadius: 60,
+  backgroundColor: colors.iconInactive, // Cor de fundo enquanto carrega
+},
+changeImageText: {
+  color: colors.primary,
+  marginTop: 10,
+  fontSize: 16,
+  },
+
+  
   });

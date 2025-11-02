@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   View,
   Text,
@@ -11,19 +11,23 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Modal,
+  Image,
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
-import { FIREBASE_DB } from "../services/firebaseConfig";
+import { FIREBASE_DB, FIREBASE_STORAGE } from "../services/firebaseConfig";
+import * as ImagePicker from "expo-image-picker";
 import { createGeralStyles } from "../styles/Geral.style";
+
 
 export default function EditProfileScreen() {
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
-  const { user } = useAuth();
+  const { user, profile, reloadProfile } = useAuth();
 
   const [name, setName] = useState("");
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,16 +35,43 @@ export default function EditProfileScreen() {
   const [newEmail, setNewEmail] = useState("");
 
   useEffect(() => {
-    if (user) {
-      const userDocRef = FIREBASE_DB.collection("users").doc(user.uid);
-      userDocRef.get().then((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          setName(data?.name || "");
-        }
-      });
+    if (user && profile) {
+      setName(profile.name || "");
     }
-  }, [user]);
+  }, [user, profile]);
+
+  const handleImagePick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Erro", "Precisamos de permissão para acessar sua galeria.");
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadImageAsync = async (
+    uri: string,
+    uid: string
+  ): Promise<string> => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const ref = FIREBASE_STORAGE.ref().child(
+      `profile_images/${uid}/profile.jpg`
+    );
+    const snapshot = await ref.put(blob);
+    const url = await snapshot.ref.getDownloadURL();
+    return url;
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -53,17 +84,30 @@ export default function EditProfileScreen() {
     setLoading(true);
 
     try {
+      let newPhotoURL: string | undefined = undefined;
+      if (imageUri) {
+        newPhotoURL = await uploadImageAsync(imageUri, user.uid);
+      }
+
+      const dataToUpdate: { name: string; photoURL?: string } = { name };
+      if (newPhotoURL) {
+        dataToUpdate.photoURL = newPhotoURL;
+      }
+
       await FIREBASE_DB.collection("users")
         .doc(user.uid)
-        .set({ name }, { merge: true });
+        .set(dataToUpdate, { merge: true });
 
       if (password.trim().length > 0) {
         await user.updatePassword(password);
       }
 
+      await reloadProfile();
+
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       setPassword("");
       setConfirmPassword("");
+      setImageUri(null);
     } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);
       Alert.alert("Erro", error.message || "Falha ao atualizar perfil");
@@ -127,6 +171,22 @@ export default function EditProfileScreen() {
         <View style={styles.container}>
           <Text style={styles.sectionTitle}>Editar Perfil</Text>
 
+          <TouchableOpacity
+            onPress={handleImagePick}
+            style={styles.profileImageContainer}
+          >
+            <Image
+              source={{
+                uri:
+                  imageUri ||
+                  profile?.photoURL ||
+                  "URL_DA_SUA_IMAGEM_PADRAO_AQUI",
+              }}
+              style={styles.profileImage}
+            />
+            <Text style={styles.changeImageText}>Alterar Foto</Text>
+          </TouchableOpacity>
+
           <TextInput
             placeholder="Nome"
             placeholderTextColor={colors.iconInactive}
@@ -172,15 +232,8 @@ export default function EditProfileScreen() {
                       style={styles.input}
                     />
                     <View style={styles.modalButtons}>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={onClose}
-                      >
-                        <Text
-                          style={styles.saveButtonText}
-                        >
-                          Cancelar
-                        </Text>
+                      <TouchableOpacity style={styles.button} onPress={onClose}>
+                        <Text style={styles.saveButtonText}>Cancelar</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.button}
@@ -188,11 +241,7 @@ export default function EditProfileScreen() {
                           chageEmail(newEmail);
                         }}
                       >
-                        <Text
-                          style={styles.saveButtonText}
-                        >
-                          Confirmar
-                        </Text>
+                        <Text style={styles.saveButtonText}>Confirmar</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
