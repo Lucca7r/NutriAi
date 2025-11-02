@@ -62,7 +62,7 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
       if (estimatedCalories > 0) {
         setCalories(estimatedCalories.toString());
       } else {
-        Alert.alert("Ops!", "Não consegui estimar as calorias. Tente descrever com mais detalhes ou insira manualmente.");
+        Alert.alert("Ops!", "Não consegui estimar as calorias. Tente descrever com mais detalhes ou insira manually.");
       }
     } catch (error) {
       Alert.alert("Erro", "Houve um problema ao estimar as calorias.");
@@ -81,7 +81,10 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
 
     setIsSaving(true);
     const todayDocId = new Date().toISOString().split('T')[0];
-    const dayRef = FIREBASE_DB.collection('users').doc(user.uid).collection('dailyEntries').doc(todayDocId);
+    
+    // --- ESTA É A CORREÇÃO ---
+    // O nome da coleção foi alterado para 'dailyLogs' para corresponder às regras de segurança.
+    const dayRef = FIREBASE_DB.collection('users').doc(user.uid).collection('dailyLogs').doc(todayDocId);
 
     try {
       await FIREBASE_DB.runTransaction(async (transaction) => {
@@ -113,7 +116,7 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
             calories: caloriesValue,
           };
           if (!dayDoc.exists) {
-            transaction.set(dayRef, { consumedCalories: caloriesValue, meals: [newMeal] });
+            transaction.set(dayRef, { consumedCalories: caloriesValue, meals: [newMeal], date: firebase.firestore.Timestamp.fromDate(new Date(todayDocId)) });
           } else {
             transaction.update(dayRef, {
               consumedCalories: firebase.firestore.FieldValue.increment(caloriesValue),
@@ -226,3 +229,4 @@ const styles = StyleSheet.create({
   saveButton: { width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
 });
+

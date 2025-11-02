@@ -50,9 +50,11 @@ export default function CalorieTrackerChart({
 
     const todayDocId = new Date().toISOString().split("T")[0];
 
+    // --- ESTA É A CORREÇÃO ---
+    // Alterado de "dailyEntries" para "dailyLogs" para corresponder às regras do Firestore.
     const unsubscribe = FIREBASE_DB.collection("users")
       .doc(user.uid)
-      .collection("dailyEntries")
+      .collection("dailyLogs") // <-- O NOME CORRETO DA COLEÇÃO
       .doc(todayDocId)
       .onSnapshot((doc) => {
         if (doc.exists) {
@@ -61,6 +63,9 @@ export default function CalorieTrackerChart({
           setConsumed(0);
         }
         setLoading(false);
+      }, (error) => { // Adicionado tratamento de erro para depuração
+          console.error("Erro no listener do CalorieTrackerChart:", error);
+          setLoading(false);
       });
 
     return () => unsubscribe();
@@ -68,11 +73,12 @@ export default function CalorieTrackerChart({
 
   if (loading) {
     return (
-      <ActivityIndicator
-        size="large"
-        color={colors.primary}
-        style={styles.container}
-      />
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <ActivityIndicator
+                size="large"
+                color={colors.primary}
+            />
+        </View>
     );
   }
 
@@ -86,10 +92,10 @@ export default function CalorieTrackerChart({
 
   const remaining = Math.max(0, goal - consumed);
   const pieData = [
-    // O valor consumido (em verde)
-    { value: consumed, color: colors.primary, focused: true },
-    // O valor restante (em cinza)
-    { value: remaining, color: colors.iconInactive },
+    // O valor consumido
+    { value: consumed, color: '#41424A', focused: true },
+    // O valor restante
+    { value: remaining, color: '#D9D9D9' },
   ];
 
   return (
@@ -103,7 +109,7 @@ export default function CalorieTrackerChart({
             style={styles.addButton}
             onPress={onAddPress}
           >
-            <Ionicons name="add" size={24} color="#000000" />
+            <Ionicons name="add" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
         <View style={styles.chartContainer}>
@@ -123,7 +129,7 @@ export default function CalorieTrackerChart({
                   <Text
                     style={{
                       fontSize: 22,
-                      color: "#000000",
+                      color: colors.text,
                       fontWeight: "bold",
                     }}
                   >
@@ -142,4 +148,3 @@ export default function CalorieTrackerChart({
     </TouchableOpacity>
   );
 }
-

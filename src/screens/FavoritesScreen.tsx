@@ -60,17 +60,18 @@ export const FavoritesScreen = () => {
         const folderData = doc.data() as Omit<Folder, "id">;
         const folderId = doc.id;
 
+        // --- SUBSTITUA A LÓGICA DE CONTAGEM DE RECEITAS POR ESTA ---
         const recipesSnapshot = await firestore
-          .collection("recipes")
-          .doc(folderData.title)
-          .collection("items")
+          .collection("folders") // Acessa a coleção principal de pastas
+          .doc(folderId) // Pega a pasta específica pelo ID
+          .collection("recipes") // Acessa a subcoleção de receitas dela
           .get();
 
         fetchedFolders.push({
           id: folderId,
           title: folderData.title,
           userId: folderData.userId,
-          count: recipesSnapshot.size,
+          count: recipesSnapshot.size, // Conta as receitas corretamente
         });
       }
 
@@ -202,7 +203,12 @@ export const FavoritesScreen = () => {
                 onPress={() => handleFolderPress(item.title)}
                 activeOpacity={0.9}
               >
-                <Text style={[styles.sectionTitle, { marginBottom: 0, fontSize: 18 }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { marginBottom: 0, fontSize: 18 },
+                  ]}
+                >
                   {item.title}
                 </Text>
                 <Text style={styles.label}>

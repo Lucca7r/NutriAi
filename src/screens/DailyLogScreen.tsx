@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { useAuth } from "../context/AuthContext";
@@ -21,10 +22,9 @@ import { createGeralStyles } from "../styles/Geral.style";
 
 type DailyLogScreenRouteProp = RouteProp<RootStackParamList, "DailyLog">;
 
+// Interface ajustada para corresponder ao que o AddMealModal salva
 interface Meal {
-  id: string;
-  type: string;
-  description: string;
+  name: string;
   calories: number;
 }
 
@@ -37,9 +37,11 @@ export default function DailyLogScreen() {
 
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totalCalories, setTotalCalories] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const [isModalVisible, setModalVisible] = useState(false);
-  const [mealToEdit, setMealToEdit] = useState<Meal | null>(null);
+  // Ajustado para o tipo de dado correto
+  const [mealToEdit, setMealToEdit] = useState<{ name: string; calories: number; } | null>(null);
 
   const { date } = route.params;
 
@@ -56,16 +58,26 @@ export default function DailyLogScreen() {
   }, [date, navigation]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+        setLoading(false);
+        return;
+    };
+
+    // --- CORREÇÃO 1: Nome da coleção ---
+    // Alterado de "dailyEntries" para "dailyLogs" para corresponder às regras
     const docRef = FIREBASE_DB.collection("users")
       .doc(user.uid)
-      .collection("dailyEntries")
+      .collection("dailyLogs") // <-- NOME CORRIGIDO
       .doc(date);
 
     const unsubscribe = docRef.onSnapshot((doc) => {
       const data = doc.data();
       setMeals(data?.meals || []);
       setTotalCalories(data?.consumedCalories || 0);
+      setLoading(false);
+    }, (error) => {
+        console.error("Erro ao carregar dados do dia:", error);
+        setLoading(false);
     });
 
     return () => unsubscribe();
@@ -74,7 +86,7 @@ export default function DailyLogScreen() {
   const handleDeleteMeal = (mealToDelete: Meal) => {
     Alert.alert(
       "Confirmar Exclusão",
-      `Tem certeza que deseja excluir "${mealToDelete.description}"?`,
+      `Tem certeza que deseja excluir "${mealToDelete.name}"?`,
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -82,9 +94,10 @@ export default function DailyLogScreen() {
           style: "destructive",
           onPress: async () => {
             if (!user) return;
+            // --- CORREÇÃO 2: Nome da coleção na função de deletar ---
             const docRef = FIREBASE_DB.collection("users")
               .doc(user.uid)
-              .collection("dailyEntries")
+              .collection("dailyLogs") // <-- NOME CORRIGIDO
               .doc(date);
             await docRef.update({
               meals: firebase.firestore.FieldValue.arrayRemove(mealToDelete),
@@ -106,18 +119,17 @@ export default function DailyLogScreen() {
   const renderMealItem = ({ item }: { item: Meal }) => (
     <View style={styles.mealCard}>
       <View style={styles.mealInfo}>
-        <Text style={styles.mealType}>
-          {item.type}
-        </Text>
+        {/* CORREÇÃO 3: Usando 'name' em vez de 'description' e removendo 'type' */}
         <Text style={styles.mealDescription}>
-          {item.description}
+          {item.name}
         </Text>
       </View>
       <View style={styles.mealActions}>
         <Text style={[styles.mealCalories, { color: "#FFF" }]}>
           {item.calories} kcal
         </Text>
-        <TouchableOpacity
+        {/* A função de editar precisará ser implementada no futuro */}
+        {/* <TouchableOpacity
           onPress={() => openEditModal(item)}
           style={{ marginLeft: 8 }}
         >
@@ -126,7 +138,7 @@ export default function DailyLogScreen() {
             size={22}
             color="#C8C9D2"
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => handleDeleteMeal(item)}
           style={{ marginLeft: 16 }}
@@ -141,6 +153,14 @@ export default function DailyLogScreen() {
     </View>
   );
 
+  if (loading) {
+    return (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#282A30"}}>
+            <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+    );
+  }
+
   return (
     <View
       style={[styles.container, { padding: 16, backgroundColor: "#282A30" }]}
@@ -148,7 +168,8 @@ export default function DailyLogScreen() {
       <FlatList
         data={meals}
         renderItem={renderMealItem}
-        keyExtractor={(item) => item.id}
+        // CORREÇÃO 4: Chave mais robusta para evitar erros
+        keyExtractor={(item, index) => `${item.name}-${index}`}
         ListHeaderComponent={
           <Text style={styles.sectionTitle}>
             Total Consumido: {totalCalories} kcal
