@@ -17,7 +17,7 @@ export interface UserProfile {
   formularioConcluido?: boolean;
   formResponses?: Record<string, any>;
   dailyCalorieGoal?: number;
-
+  photoURL?: string;
   cachedTips?: {
     tips: string[];
     generatedAt: firebase.firestore.Timestamp;
