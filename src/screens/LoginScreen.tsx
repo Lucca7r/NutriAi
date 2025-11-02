@@ -47,7 +47,6 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
     setIsLoading(true);
     try {
-      // SINTAXE NOVA (estilo v8)
       const response = await FIREBASE_AUTH.signInWithEmailAndPassword(
         email,
         senha
@@ -61,31 +60,28 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     }
   };
 
+  // --- FUNÇÃO 100% CORRIGIDA ---
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       await GoogleSignin.hasPlayServices();
 
-      // --- ESTA É A CORREÇÃO ---
-      // O idToken agora vem dentro do objeto 'data'
+      // 1. signIn() retorna um objeto que contém 'idToken' e um objeto 'user'
       const signInResult = await GoogleSignin.signIn();
 
-      if (!signInResult.data?.idToken) {
-        // Adiciona uma verificação para o caso de o idToken vir nulo
+      if (!signInResult.idToken) {
         throw new Error("Não foi possível obter o idToken do Google.");
       }
 
-      // Agora passamos o signInResult.data.idToken (que existe) para o Firebase
+      // 2. Usamos o 'idToken' para a credencial
       const googleCredential = firebase.auth.GoogleAuthProvider.credential(
-        signInResult.data.idToken
+        signInResult.idToken
       );
-      // --- FIM DA CORREÇÃO ---
 
       const userCredential = await FIREBASE_AUTH.signInWithCredential(
         googleCredential
       );
 
-      // userAuth contém as informações do usuário autenticado
       const userAuth = userCredential.user;
       const isNewUser = userCredential.additionalUserInfo?.isNewUser;
 
@@ -97,10 +93,11 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
           .doc(userAuth.uid)
           .set(
             {
-              name: userAuth.displayName || "Usuário",
-              email: userAuth.email,
+              // 3. Usamos o objeto 'signInResult.user' para os dados do perfil
+              name: signInResult.user.name || userAuth.displayName || "Usuário",
+              email: signInResult.user.email,
               createdAt: new Date(),
-              photoURL: userAuth.photoURL || null,
+              photoURL: signInResult.user.photo || userAuth.photoURL || null,
               formularioConcluido: false,
             },
             { merge: true }
@@ -117,6 +114,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
       setIsLoading(false);
     }
   };
+  // --- FIM DA CORREÇÃO ---
 
   const navigateToCadastro = () => {
     navigation.navigate("Cadastro");
@@ -132,7 +130,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             <TextInput
               style={styles.input}
               placeholder="E-mail"
-              placeholderTextColor={styles.inputPlaceholder.color}
+              // --- CORREÇÃO DO ERRO DE 'color' ---
+              placeholderTextColor={colors.iconInactive}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -141,7 +140,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             <TextInput
               style={styles.input}
               placeholder="Senha"
-              placeholderTextColor={styles.inputPlaceholder.color}
+              // --- CORREÇÃO DO ERRO DE 'color' ---
+              placeholderTextColor={colors.iconInactive}
               value={senha}
               onChangeText={setSenha}
               secureTextEntry
@@ -149,12 +149,11 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             <TouchableOpacity
               style={[styles.button, { marginTop: 20 }]}
               onPress={handleLogin}
-              disabled={isLoading} // <--- MUDANÇA AQUI
+              disabled={isLoading}
             >
               <Text style={[styles.buttonText, { fontSize: 18 }]}>Entrar</Text>
             </TouchableOpacity>
 
-            {/* --- MUDANÇA AQUI (onPress e disabled) --- */}
             <TouchableOpacity
               style={styles.googleButton}
               onPress={handleGoogleSignIn}
@@ -175,4 +174,5 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     </TouchableWithoutFeedback>
   );
 };
+
 export default LoginScreen;
