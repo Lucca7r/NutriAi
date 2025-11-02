@@ -7,14 +7,17 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../context/ThemeContext";
 import { createGeralStyles } from "../styles/Geral.style";
 
-import { Alert } from "react-native"; // Adicione o Alert
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-import { FIREBASE_AUTH } from "../services/firebaseConfig";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../services/firebaseConfig";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
 
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { RootStackParamList } from "../@types/navigation";
@@ -58,6 +61,63 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await GoogleSignin.hasPlayServices();
+
+      // --- ESTA É A CORREÇÃO ---
+      // O idToken agora vem dentro do objeto 'data'
+      const signInResult = await GoogleSignin.signIn();
+
+      if (!signInResult.data?.idToken) {
+        // Adiciona uma verificação para o caso de o idToken vir nulo
+        throw new Error("Não foi possível obter o idToken do Google.");
+      }
+
+      // Agora passamos o signInResult.data.idToken (que existe) para o Firebase
+      const googleCredential = firebase.auth.GoogleAuthProvider.credential(
+        signInResult.data.idToken
+      );
+      // --- FIM DA CORREÇÃO ---
+
+      const userCredential = await FIREBASE_AUTH.signInWithCredential(
+        googleCredential
+      );
+
+      // userAuth contém as informações do usuário autenticado
+      const userAuth = userCredential.user;
+      const isNewUser = userCredential.additionalUserInfo?.isNewUser;
+
+      if (isNewUser && userAuth) {
+        console.log(
+          "Novo usuário do Google, criando documento no Firestore..."
+        );
+        await FIREBASE_DB.collection("users")
+          .doc(userAuth.uid)
+          .set(
+            {
+              name: userAuth.displayName || "Usuário",
+              email: userAuth.email,
+              createdAt: new Date(),
+              photoURL: userAuth.photoURL || null,
+              formularioConcluido: false,
+            },
+            { merge: true }
+          );
+      }
+    } catch (error: any) {
+      if (error.code === "SIGN_IN_CANCELLED") {
+        console.log("Login com Google cancelado");
+      } else {
+        console.error("Erro no login com Google:", error);
+        Alert.alert("Erro", "Não foi possível fazer login com o Google.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const navigateToCadastro = () => {
     navigation.navigate("Cadastro");
   };
@@ -86,12 +146,19 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
               onChangeText={setSenha}
               secureTextEntry
             />
-            <TouchableOpacity style={[styles.button, { marginTop: 20 }]} onPress={handleLogin}>
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 20 }]}
+              onPress={handleLogin}
+              disabled={isLoading} // <--- MUDANÇA AQUI
+            >
               <Text style={[styles.buttonText, { fontSize: 18 }]}>Entrar</Text>
             </TouchableOpacity>
+
+            {/* --- MUDANÇA AQUI (onPress e disabled) --- */}
             <TouchableOpacity
               style={styles.googleButton}
-              onPress={() => console.log("Login com Google")}
+              onPress={handleGoogleSignIn}
+              disabled={isLoading}
             >
               <Text style={styles.googleButtonText}>Entrar com o Google</Text>
               <Ionicons name="logo-google" size={24} color="#000000" />
@@ -108,5 +175,4 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     </TouchableWithoutFeedback>
   );
 };
-
 export default LoginScreen;
