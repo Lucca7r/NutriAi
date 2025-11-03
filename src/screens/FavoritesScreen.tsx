@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +20,7 @@ import { RootStackParamList } from "../@types/navigation";
 import { FIREBASE_DB } from "../services/firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import { createGeralStyles } from "../styles/Geral.style";
+import { getAuth } from "firebase/auth";
 
 export type FavoritesScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -54,30 +57,34 @@ export const FavoritesScreen = () => {
       .orderBy("title");
 
     const unsubscribe = foldersRef.onSnapshot(async (snapshot) => {
-      const fetchedFolders: Folder[] = [];
+  console.log("Snapshot recebido:", snapshot.docs.map(doc => doc.data()));
 
-      for (const doc of snapshot.docs) {
-        const folderData = doc.data() as Omit<Folder, "id">;
-        const folderId = doc.id;
+  try {
+    const fetchedFolders: Folder[] = [];
+    for (const doc of snapshot.docs) {
+      const folderData = doc.data() as Omit<Folder, "id">;
+      const folderId = doc.id;
 
-        // --- SUBSTITUA A LÓGICA DE CONTAGEM DE RECEITAS POR ESTA ---
-        const recipesSnapshot = await firestore
-          .collection("folders") // Acessa a coleção principal de pastas
-          .doc(folderId) // Pega a pasta específica pelo ID
-          .collection("recipes") // Acessa a subcoleção de receitas dela
-          .get();
+     const recipesSnapshot = await firestore
+        .collection("folders")
+        .doc(folderId)
+        .collection("recipes")
+        .get();
 
         fetchedFolders.push({
           id: folderId,
           title: folderData.title,
           userId: folderData.userId,
-          count: recipesSnapshot.size, // Conta as receitas corretamente
+          count: recipesSnapshot.size,
         });
       }
 
-      setFolders(fetchedFolders);
-    });
-
+    console.log("Folders processados:", fetchedFolders);
+    setFolders(fetchedFolders);
+  } catch (error) {
+    console.error("Erro ao processar folders:", error);
+  }
+});
     return unsubscribe;
   }, [firestore, user]);
 
@@ -92,8 +99,8 @@ export const FavoritesScreen = () => {
     folder.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleFolderPress = (folderTitle: string) => {
-    navigation.navigate("FolderRecipes", { folderName: folderTitle });
+  const handleFolderPress = (folderId: string, folderTitle: string) => {
+    navigation.navigate("FolderRecipes", { folderId: folderId, folderName: folderTitle });
   };
 
   const handleAddOrEditFolder = async () => {
@@ -136,6 +143,7 @@ export const FavoritesScreen = () => {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.searchContainer}>
@@ -200,7 +208,7 @@ export const FavoritesScreen = () => {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.folderCard}
-                onPress={() => handleFolderPress(item.title)}
+                onPress={() => handleFolderPress(item.id, item.title)}
                 activeOpacity={0.9}
               >
                 <Text
@@ -277,6 +285,7 @@ export const FavoritesScreen = () => {
         )}
       </View>
     </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 

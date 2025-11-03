@@ -27,6 +27,7 @@ export interface UserProfile {
 interface AuthContextData {
   user: User | null;
   profile: UserProfile | null;
+  setProfile: (profile: UserProfile | null) => void;
   loading: boolean;
   reloadProfile: () => Promise<void>;
 }
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, reloadProfile }}>
+    <AuthContext.Provider value={{ user, profile, setProfile, loading, reloadProfile }}>
       {children}
     </AuthContext.Provider>
   );

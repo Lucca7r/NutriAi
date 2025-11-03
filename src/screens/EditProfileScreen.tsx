@@ -19,12 +19,13 @@ import { useAuth } from "../context/AuthContext";
 import { FIREBASE_DB, FIREBASE_STORAGE } from "../services/firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
 import { createGeralStyles } from "../styles/Geral.style";
+import firebase from "firebase/compat";
 
 
 export default function EditProfileScreen() {
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
-  const { user, profile, reloadProfile } = useAuth();
+  const { user, profile, setProfile, profile, reloadProfile } = useAuth();
 
   const [name, setName] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -97,6 +98,13 @@ export default function EditProfileScreen() {
       await FIREBASE_DB.collection("users")
         .doc(user.uid)
         .set(dataToUpdate, { merge: true });
+      
+      setProfile({
+        ...profile,
+        name,
+        email: profile?.email ?? "",
+        createdAt: profile?.createdAt ?? firebase.firestore.Timestamp.now(),
+    });
 
       if (password.trim().length > 0) {
         await user.updatePassword(password);
