@@ -819,5 +819,27 @@ changeImageText: {
   fontSize: 16,
   },
 
+
+// Delete Account
+  buttonDelete: {
+      fontFamily: "Poppins_500Medium",
+      borderRadius: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 12,
+      marginBottom: 20, // Adiciona um espaço no final
+      borderWidth: 1,
+      borderColor: "#FF5252", // Um tom de vermelho
+    },
+    buttonTextDelete: {
+      fontFamily: "Poppins_500Medium",
+      fontSize: 14,
+      fontWeight: "600",
+      color: "#FF5252", // Um tom de vermelho
+      letterSpacing: 0.5,
+    },
+
   
   });
