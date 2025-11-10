@@ -575,7 +575,7 @@ export const createGeralStyles = (colors: any) =>
     addFolderButton: {
       width: 60,
       height: 60,
-      borderRadius: "50%",
+      borderRadius: 30,
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: "#41424A",
