@@ -1,26 +1,26 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  Alert, // <-- Verifique se o Alert está importado
   ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
   Platform,
   Modal,
   Image,
+  ScrollView, // <-- Adicione ScrollView
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
-import { FIREBASE_DB, FIREBASE_STORAGE } from "../services/firebaseConfig";
+import { FIREBASE_DB, FIREBASE_STORAGE, FIREBASE_AUTH } from "../services/firebaseConfig"; // <-- Adicione FIREBASE_AUTH
 import * as ImagePicker from "expo-image-picker";
 import { createGeralStyles } from "../styles/Geral.style";
 import firebase from "firebase/compat";
-
 
 export default function EditProfileScreen() {
   const colors = useThemeColors();
@@ -173,103 +173,175 @@ export default function EditProfileScreen() {
     setModalVisible(false);
   };
 
-  return (
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Excluir Conta Permanentemente",
+      "Tem certeza que deseja excluir sua conta? Todos os seus dados serão perdidos para sempre. Esta ação não pode ser desfeita.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            if (!user) {
+              Alert.alert("Erro", "Você não está logado.");
+              return;
+            }
+
+            setLoading(true); // Ativa o indicador de loading
+            try {
+              const uid = user.uid;
+              const currentUser = FIREBASE_AUTH.currentUser; // Pega o usuário ATUAL da autenticação
+
+              // 1. Excluir dados do Firestore
+              // AVISO: Isso NÃO exclui subcoleções como 'dailyLogs' ou 'weightHistory'.
+              // Para isso, você precisará de uma Cloud Function no Firebase.
+              await FIREBASE_DB.collection("users").doc(uid).delete();
+              
+              // Tenta excluir o formResponses também
+              try {
+                await FIREBASE_DB.collection("formResponses").doc(uid).delete();
+              } catch (e) {
+                console.log("Nenhum formResponses para deletar.");
+              }
+
+              // 2. Excluir o usuário da Autenticação
+              if (currentUser) {
+                await currentUser.delete();
+              } else {
+                throw new Error("Não foi possível encontrar o usuário para deletar.");
+              }
+
+              Alert.alert("Conta Excluída", "Sua conta foi excluída com sucesso.");
+              // O onAuthStateChanged no AuthContext vai cuidar de deslogar.
+              
+            } catch (error: any) {
+              setLoading(false); // Para o loading se der erro
+              console.error("Erro ao excluir conta:", error);
+              if (error.code === 'auth/requires-recent-login') {
+                Alert.alert(
+                  "Erro de Segurança",
+                  "Esta é uma operação sensível. Por favor, faça logout e login novamente antes de tentar excluir sua conta."
+                );
+              } else {
+                Alert.alert("Erro", "Não foi possível excluir a conta. " + error.message);
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
+return (
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
-          <Text style={styles.sectionTitle}>Editar Perfil</Text>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+          <View style={[styles.container, { justifyContent: 'center' }]}>
+            <Text style={styles.sectionTitle}>Editar Perfil</Text>
 
-          <TouchableOpacity
-            onPress={handleImagePick}
-            style={styles.profileImageContainer}
-          >
-            <Image
-              source={{
-                uri:
-                  imageUri ||
-                  profile?.photoURL ||
-                  "URL_DA_SUA_IMAGEM_PADRAO_AQUI",
-              }}
-              style={styles.profileImage}
+            <TouchableOpacity
+              onPress={handleImagePick}
+              style={styles.profileImageContainer}
+            >
+              <Image
+                source={{
+                  uri:
+                    imageUri ||
+                    profile?.photoURL ||
+                    "URL_DA_SUA_IMAGEM_PADRAO_AQUI",
+                }}
+                style={styles.profileImage}
+              />
+              <Text style={styles.changeImageText}>Alterar Foto</Text>
+            </TouchableOpacity>
+
+            <TextInput
+              placeholder="Nome"
+              placeholderTextColor={colors.iconInactive}
+              value={name}
+              onChangeText={setName}
+              style={styles.input}
+              autoCapitalize="words"
             />
-            <Text style={styles.changeImageText}>Alterar Foto</Text>
-          </TouchableOpacity>
 
-          <TextInput
-            placeholder="Nome"
-            placeholderTextColor={colors.iconInactive}
-            value={name}
-            onChangeText={setName}
-            style={styles.input}
-            autoCapitalize="words"
-          />
+            <TextInput
+              placeholder="Nova senha (deixe vazio para manter)"
+              placeholderTextColor={colors.iconInactive}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+            />
 
-          <TextInput
-            placeholder="Nova senha (deixe vazio para manter)"
-            placeholderTextColor={colors.iconInactive}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-          />
+            <TextInput
+              placeholder="Confirmar nova senha"
+              placeholderTextColor={colors.iconInactive}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              style={styles.input}
+            />
 
-          <TextInput
-            placeholder="Confirmar nova senha"
-            placeholderTextColor={colors.iconInactive}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            style={styles.input}
-          />
+            <TouchableOpacity onPress={openModal} style={styles.buttonOutline}>
+              <Text style={styles.buttonTextOutline}>Alterar E-mail</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={openModal} style={styles.buttonOutline}>
-            <Text style={styles.buttonTextOutline}>Alterar E-mail</Text>
-          </TouchableOpacity>
-
-          <Modal visible={modalVisible} transparent animationType="fade">
-            <TouchableWithoutFeedback onPress={onClose}>
-              <View style={styles.modalOverlay}>
-                <TouchableWithoutFeedback>
-                  <View style={styles.modalView}>
-                    <Text style={styles.sectionTitle}>Alterar E-mail</Text>
-                    <TextInput
-                      placeholder="Digite o novo e-mail"
-                      placeholderTextColor={colors.iconInactive}
-                      value={newEmail}
-                      onChangeText={setNewEmail}
-                      style={styles.input}
-                    />
-                    <View style={styles.modalButtons}>
-                      <TouchableOpacity style={styles.button} onPress={onClose}>
-                        <Text style={styles.saveButtonText}>Cancelar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.button}
-                        onPress={() => {
-                          chageEmail(newEmail);
-                        }}
-                      >
-                        <Text style={styles.saveButtonText}>Confirmar</Text>
-                      </TouchableOpacity>
+            <Modal visible={modalVisible} transparent animationType="fade">
+              
+              <TouchableWithoutFeedback onPress={onClose}>
+                <View style={styles.modalOverlay}>
+                  <TouchableWithoutFeedback>
+                    <View style={styles.modalView}>
+                      <Text style={styles.sectionTitle}>Alterar E-mail</Text>
+                      <TextInput
+                        placeholder="Digite o novo e-mail"
+                        placeholderTextColor={colors.iconInactive}
+                        value={newEmail}
+                        onChangeText={setNewEmail}
+                        style={styles.input}
+                      />
+                      <View style={styles.modalButtons}>
+                        <TouchableOpacity style={styles.button} onPress={onClose}>
+                          <Text style={styles.saveButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.button}
+                          onPress={() => {
+                            chageEmail(newEmail);
+                          }}
+                        >
+                          <Text style={styles.saveButtonText}>Confirmar</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
+                  </TouchableWithoutFeedback>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
 
-          <TouchableOpacity
-            onPress={handleSave}
-            style={styles.button}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Salvar</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              onPress={handleSave}
+              style={styles.button}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Salvar</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              style={styles.buttonDelete}
+              disabled={loading}
+            >
+              <Text style={styles.buttonTextDelete}>Excluir Conta</Text>
+            </TouchableOpacity>
+            
+          </View>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );

@@ -1,3 +1,5 @@
+// src/styles/BottomTabs.style.ts
+
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
@@ -15,11 +17,16 @@ export default StyleSheet.create({
   },
 
   iconWrapper: {
-    backgroundColor: "#5A5B63",
-    borderRadius: 50,
-    padding: 18,
+    width: 60,  
+    height: 60, 
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+
     
+    backgroundColor: "#5A5B63",
   },
+
   activeIcon: {
     backgroundColor: "#F5F5F5",
   },
