@@ -20,7 +20,6 @@ import { RootStackParamList } from "../@types/navigation";
 import { FIREBASE_DB } from "../services/firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import { createGeralStyles } from "../styles/Geral.style";
-import { getAuth } from "firebase/auth";
 
 export type FavoritesScreenNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;

@@ -25,7 +25,7 @@ import firebase from "firebase/compat";
 export default function EditProfileScreen() {
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
-  const { user, profile, setProfile, profile, reloadProfile } = useAuth();
+  const { user, profile, setProfile, reloadProfile } = useAuth();
 
   const [name, setName] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
