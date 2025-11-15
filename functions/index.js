@@ -124,7 +124,7 @@ ${message}
     logger.info("Enviando requisição (Receitas V5) para a OpenAI...");
 
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       input: prompt,
     });
 
@@ -159,7 +159,7 @@ exports.estimateCaloriesFromText = onCall({ secrets: [OPENAI_API_KEY] }, async (
     logger.info("Enviando requisição (Calorias V5) para a OpenAI...");
 
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       input: prompt,
     });
     
@@ -216,7 +216,7 @@ exports.generatePersonalizedTips = onCall({ secrets: [OPENAI_API_KEY] }, async (
     logger.info("Enviando requisição (Dicas V5) para a OpenAI...");
 
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       input: prompt,
     });
     

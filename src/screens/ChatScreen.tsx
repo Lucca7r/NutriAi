@@ -36,7 +36,10 @@ export const ChatScreen = () => {
   const [chats, setChats] = useState<any[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
-  const callSendMessageToAI = httpsCallable(FIREBASE_FUNCTIONS, 'sendMessageToAI');
+  const callSendMessageToAI = httpsCallable(
+    FIREBASE_FUNCTIONS,
+    "sendMessageToAI"
+  );
 
   // Buscar chats do usuário logado
   const fetchUserChats = async () => {
@@ -79,7 +82,7 @@ export const ChatScreen = () => {
     setInput("");
     setLoadingAI(true);
 
-try {
+    try {
       // 1. Prepara o histórico (exatamente como seu código já fazia)
       const historyLimit = 5;
       const history =
@@ -89,18 +92,17 @@ try {
 
       // 2. Chama a Cloud Function com os dados corretos
       const result = await callSendMessageToAI({
-        message: input, // A nova mensagem
-        userProfile: profile, // O perfil
-        history: history, // O histórico anterior
+        message: input,
+        userProfile: { formResponses: profile?.formResponses }, // <-- CORRIGIDO
+        history: history,
       });
-
       // 3. Pega a resposta de dentro de 'result.data'
       const responseText = (result.data as { response: string }).response;
 
       if (!responseText) {
         throw new Error("A IA não retornou uma resposta.");
       }
-      
+
       const aiMsg: Message = { role: "assistant", content: responseText };
 
       // 4. Salva no Firestore (exatamente como seu código já fazia)
@@ -119,7 +121,8 @@ try {
       ]);
     } finally {
       setLoadingAI(false);
-    }};
+    }
+  };
 
   // Abrir chat antigo
   const openChat = async (chatId: string) => {

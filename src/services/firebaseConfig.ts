@@ -40,4 +40,4 @@ export const FIREBASE_DB = firebase.firestore();
 export const FIREBASE_STORAGE = firebase.storage();
 
 // A ÚNICA LINHA NOVA QUE VOCÊ PRECISA ADICIONAR:
-export const FIREBASE_FUNCTIONS = getFunctions(app, 'southamerica-east1');
+export const FIREBASE_FUNCTIONS = getFunctions(app, 'us-central1');

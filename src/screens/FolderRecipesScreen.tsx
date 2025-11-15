@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react';
+// src/screens/FolderRecipesScreen.tsx
+
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -8,13 +10,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Keyboard,
-} from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '../context/ThemeContext';
-import { AuthContext, UserProfile } from '../context/AuthContext';
-import { sendMessageToRecipeAI } from '../services/openaiService';
+  // Alert, // Alert não é usado aqui, mantive seu padrão
+} from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "../context/ThemeContext";
+import { AuthContext, UserProfile } from "../context/AuthContext";
+
+// --- MUDANÇA 1: Remover o 'openaiService' ---
+// import { sendMessageToRecipeAI } from '../services/openaiService'; // <-- DELETADO
+
 import {
   collection,
   addDoc,
@@ -24,9 +30,13 @@ import {
   Timestamp,
   deleteDoc,
   doc,
-} from 'firebase/firestore';
-import { FIREBASE_DB } from '../services/firebaseConfig';
-import { createGeralStyles } from '../styles/Geral.style';
+} from "firebase/firestore";
+
+// --- MUDANÇA 2: Importar 'FIREBASE_FUNCTIONS' e 'httpsCallable' ---
+import { FIREBASE_DB, FIREBASE_FUNCTIONS } from "../services/firebaseConfig";
+import { httpsCallable } from "firebase/functions";
+
+import { createGeralStyles } from "../styles/Geral.style";
 
 type Recipe = {
   id?: string;
@@ -37,7 +47,10 @@ type Recipe = {
 export default function FolderRecipesScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { folderId, folderName } = route.params as { folderId: string, folderName: string };
+  const { folderId, folderName } = route.params as {
+    folderId: string;
+    folderName: string;
+  };
   const colors = useThemeColors();
   const styles = createGeralStyles(colors);
   const authContext = useContext(AuthContext);
@@ -45,7 +58,7 @@ export default function FolderRecipesScreen() {
   const userProfile: UserProfile | null = authContext.user
     ? {
         ...(authContext.user as any),
-        name: (authContext.user as any).name ?? '',
+        name: (authContext.user as any).name ?? "",
         createdAt: (authContext.user as any).createdAt ?? null,
       }
     : null;
@@ -53,15 +66,19 @@ export default function FolderRecipesScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
 
-  
+  // --- MUDANÇA 3: Criar a referência da função ---
+  const callSendMessageToRecipeAI = httpsCallable(
+    FIREBASE_FUNCTIONS,
+    "sendMessageToRecipeAI"
+  );
 
   async function fetchRecipes(folder: string): Promise<Recipe[]> {
-    const ref = collection(FIREBASE_DB, 'folders', folder, 'recipes');
-    const q = query(ref, orderBy('createdAt', 'desc'));
+    const ref = collection(FIREBASE_DB, "folders", folder, "recipes");
+    const q = query(ref, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -70,7 +87,7 @@ export default function FolderRecipesScreen() {
   }
 
   async function saveRecipe(folder: string, text: string): Promise<void> {
-    const ref = collection(FIREBASE_DB, 'folders', folder, 'recipes');
+    const ref = collection(FIREBASE_DB, "folders", folder, "recipes");
     await addDoc(ref, {
       text,
       createdAt: Timestamp.now(),
@@ -79,11 +96,11 @@ export default function FolderRecipesScreen() {
 
   async function deleteRecipe(id: string) {
     try {
-      const recipeRef = doc(FIREBASE_DB, 'folders', folderId, 'recipes', id);
+      const recipeRef = doc(FIREBASE_DB, "folders", folderId, "recipes", id);
       await deleteDoc(recipeRef);
       setRecipes((prev) => prev.filter((r) => r.id !== id));
     } catch (error) {
-      console.error('Erro ao deletar receita:', error);
+      console.error("Erro ao deletar receita:", error);
     }
   }
 
@@ -94,7 +111,7 @@ export default function FolderRecipesScreen() {
         const data = await fetchRecipes(folderId);
         setRecipes(data);
       } catch (e) {
-        console.error('Erro ao buscar receitas:', e);
+        console.error("Erro ao buscar receitas:", e);
       } finally {
         setLoading(false);
       }
@@ -102,23 +119,35 @@ export default function FolderRecipesScreen() {
     loadRecipes();
   }, [folderName]);
 
+  // --- MUDANÇA 4: Atualizar a chamada na função 'handleAddRecipe' ---
   async function handleAddRecipe() {
     setErrorMsg(null);
     if (!inputText.trim()) {
-      setErrorMsg('Por favor, insira detalhes da receita.');
+      setErrorMsg("Por favor, insira detalhes da receita.");
       return;
     }
 
     setGenerating(true);
     try {
-      const result = await sendMessageToRecipeAI(inputText.trim(), userProfile);
+      // --- LÓGICA ANTIGA REMOVIDA ---
+      // const result = await sendMessageToRecipeAI(inputText.trim(), userProfile);
 
-      if (result === 'Por favor, peça somente receitas.') {
-        setErrorMsg('Por favor, peça somente receitas.');
+      // --- LÓGICA NOVA (SEGURA) ---
+      const resultData = await callSendMessageToRecipeAI({
+        message: inputText.trim(),
+        userProfile: { formResponses: userProfile?.formResponses }, // <-- CORRIGIDO
+      });
+      const result = (resultData.data as { response: string }).response;
+      // --- FIM DA LÓGICA NOVA ---
+
+      if (result === "Por favor, peça somente receitas.") {
+        setErrorMsg("Por favor, peça somente receitas.");
+        // Adicionando 'return' aqui para parar a execução e não salvar
+        setGenerating(false); // <-- Importante: pare o loading
         return;
       }
 
-      console.log('result', result)
+      console.log("result", result);
 
       await saveRecipe(folderId, result);
       const newRecipe: Recipe = {
@@ -127,12 +156,12 @@ export default function FolderRecipesScreen() {
       };
 
       setRecipes((old) => [newRecipe, ...old]);
-      setInputText('');
+      setInputText("");
       setAdding(false);
       Keyboard.dismiss();
     } catch (error: any) {
-      console.error('Erro ao gerar receita:', error);
-      setErrorMsg(error.message || 'Erro desconhecido');
+      console.error("Erro ao gerar receita:", error);
+      setErrorMsg(error.message || "Erro desconhecido");
     } finally {
       setGenerating(false);
     }
@@ -140,23 +169,45 @@ export default function FolderRecipesScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { paddingHorizontal: 24, paddingBottom: 45 }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { paddingHorizontal: 24, paddingBottom: 45 }]}
+    >
       <View style={styles.folderHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.recipeBackButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.recipeBackButton}
+        >
           <Ionicons name="arrow-back" size={24} color="#C8C9D2" />
         </TouchableOpacity>
-        <Text style={[styles.sectionTitle, { textAlign: "center", marginBottom: 0 }]}>{folderName}</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { textAlign: "center", marginBottom: 0 },
+          ]}
+        >
+          {folderName}
+        </Text>
       </View>
 
       {adding && (
-        <View style={[styles.inputContainer, { borderColor: colors.textSecondary || '#888' }]}>
+        <View
+          style={[
+            styles.inputContainer,
+            { borderColor: colors.textSecondary || "#888" },
+          ]}
+        >
           <TextInput
             style={styles.input}
             placeholder="Descreva sua receita (ex: receita de bolo de chocolate)"
@@ -183,7 +234,7 @@ export default function FolderRecipesScreen() {
               style={styles.button}
               onPress={() => {
                 setAdding(false);
-                setInputText('');
+                setInputText("");
                 setErrorMsg(null);
               }}
               disabled={generating}
@@ -206,7 +257,9 @@ export default function FolderRecipesScreen() {
             >
               <Ionicons name="trash" size={20} color="red" />
             </TouchableOpacity>
-            <Text style={[styles.recipeText, { color: "#FFF" }]}>{item.text}</Text>
+            <Text style={[styles.recipeText, { color: "#FFF" }]}>
+              {item.text}
+            </Text>
           </View>
         )}
       />
@@ -223,18 +276,19 @@ export default function FolderRecipesScreen() {
   );
 }
 
+// Seu StyleSheet local (mantido)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -243,7 +297,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   inputContainer: {
     marginHorizontal: 16,
@@ -255,15 +309,15 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 80,
     fontSize: 16,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   error: {
-    color: 'red',
+    color: "red",
     marginTop: 6,
   },
   buttonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 12,
   },
   button: {
@@ -271,11 +325,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     paddingVertical: 14,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
   },
   card: {
@@ -283,8 +337,8 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     padding: 16,
     borderRadius: 8,
-    position: 'relative',
-    shadowColor: '#000',
+    position: "relative",
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -294,25 +348,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   deleteButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 8,
     top: 8,
     padding: 4,
     zIndex: 1,
   },
   floatingButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 30,
     width: 56,
     height: 56,
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 4 },
     elevation: 5,
+  },
+  // Estilos que parecem estar faltando do Geral.style.ts, mas que
+  // seu código original já usa (adicionando como referência)
+  safeArea: {
+    flex: 1,
+  },
+  folderHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  recipeBackButton: {
+    position: "absolute",
+    left: 0,
+    zIndex: 1,
+  },
+  sectionTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  inputPlaceholder: {
+    color: "#888",
+  },
+  saveButtonText: {
+    color: "#fff",
+  },
+  recipeCard: {
+    backgroundColor: "#333", // Cor de exemplo
+    padding: 15,
+    borderRadius: 10,
+    marginVertical: 8,
   },
 });

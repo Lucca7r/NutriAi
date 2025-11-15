@@ -1,6 +1,6 @@
 // src/screens/HomeScreen.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,23 +12,22 @@ import {
   NativeScrollEvent,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import { useThemeColors } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { FIREBASE_DB } from '../services/firebaseConfig';
-import firebase from 'firebase/compat/app';
+} from "react-native";
+import { useThemeColors } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { FIREBASE_DB } from "../services/firebaseConfig";
+import firebase from "firebase/compat/app";
 import { createGeralStyles } from "../styles/Geral.style";
 
+import { FIREBASE_FUNCTIONS } from "../services/firebaseConfig";
+import { httpsCallable } from "firebase/functions";
 
-import { FIREBASE_FUNCTIONS } from '../services/firebaseConfig';
-import { httpsCallable } from 'firebase/functions';
+import CalorieTrackerChart from "../components/CalorieTrackerChart";
+import WeightChart from "../components/WeightChart";
+import AddMealModal from "../components/AddMealModal";
+import Logo from "../components/Logo";
 
-import CalorieTrackerChart from '../components/CalorieTrackerChart';
-import WeightChart from '../components/WeightChart';
-import AddMealModal from '../components/AddMealModal';
-import Logo from '../components/Logo';
-
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export const HomeScreen = () => {
   const colors = useThemeColors();
@@ -36,28 +35,34 @@ export const HomeScreen = () => {
   const { user, profile, reloadProfile } = useAuth();
 
   const [isModalVisible, setModalVisible] = useState(false);
-  
+
   // --- LÓGICA DO CARROSSEL DE GRÁFICOS ---
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const chartComponents = [
-    <CalorieTrackerChart onAddPress={() => setModalVisible(true)} />, 
-    <WeightChart />
+    <CalorieTrackerChart onAddPress={() => setModalVisible(true)} />,
+    <WeightChart />,
   ];
 
   const onChartScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slide = Math.ceil(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
+    const slide = Math.ceil(
+      event.nativeEvent.contentOffset.x /
+        event.nativeEvent.layoutMeasurement.width
+    );
     if (slide !== activeChartIndex) {
       setActiveChartIndex(slide);
     }
   };
-  
+
   // --- LÓGICA PARA DICAS PERSONALIZADAS (ATUALIZADA) ---
   const [tips, setTips] = useState<string[]>([]);
   const [loadingTips, setLoadingTips] = useState(true);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
 
   // --- 2. REFERÊNCIA DA CLOUD FUNCTION ---
-  const callGeneratePersonalizedTips = httpsCallable(FIREBASE_FUNCTIONS, 'generatePersonalizedTips');
+  const callGeneratePersonalizedTips = httpsCallable(
+    FIREBASE_FUNCTIONS,
+    "generatePersonalizedTips"
+  );
   // --- FIM DA REFERÊNCIA ---
 
   useEffect(() => {
@@ -67,11 +72,14 @@ export const HomeScreen = () => {
 
         const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
         const now = new Date();
-        
+
         // Lógica de cache (continua a mesma)
         if (profile.cachedTips) {
           const lastGenerated = profile.cachedTips.generatedAt?.toDate();
-          if (lastGenerated && (now.getTime() - lastGenerated.getTime() < oneWeekInMs)) {
+          if (
+            lastGenerated &&
+            now.getTime() - lastGenerated.getTime() < oneWeekInMs
+          ) {
             setTips(profile.cachedTips.tips);
             setLoadingTips(false);
             return;
@@ -79,9 +87,11 @@ export const HomeScreen = () => {
         }
 
         setLoadingTips(true);
-        
+
         // --- 3. CHAMADA SEGURA À CLOUD FUNCTION ---
-        const result = await callGeneratePersonalizedTips({ userProfile: profile });
+        const result = await callGeneratePersonalizedTips({
+          userProfile: { formResponses: profile?.formResponses }, // <-- CORRIGIDO
+        });
         const newTips = (result.data as { tips: string[] }).tips;
         // --- FIM DA CHAMADA ---
 
@@ -90,17 +100,18 @@ export const HomeScreen = () => {
         }
 
         setTips(newTips);
-        
+
         // Salva as novas dicas no cache do Firestore
-        await FIREBASE_DB.collection('users').doc(user.uid).update({
-          cachedTips: {
-            tips: newTips,
-            generatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }
-        });
+        await FIREBASE_DB.collection("users")
+          .doc(user.uid)
+          .update({
+            cachedTips: {
+              tips: newTips,
+              generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            },
+          });
 
         await reloadProfile(); // Recarrega o perfil para ter o cache mais novo
-
       } catch (error) {
         console.error("Erro ao buscar dicas:", error);
         // Se falhar, usa dicas genéricas para o usuário não ficar sem
@@ -129,7 +140,7 @@ export const HomeScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.homeContainer}>
         <Logo />
-        
+
         <ScrollView>
           <View>
             <ScrollView
@@ -151,7 +162,12 @@ export const HomeScreen = () => {
                   key={index}
                   style={[
                     styles.dot,
-                    { backgroundColor: activeChartIndex === index ? "#C8C9D2" : colors.iconInactive }
+                    {
+                      backgroundColor:
+                        activeChartIndex === index
+                          ? "#C8C9D2"
+                          : colors.iconInactive,
+                    },
                   ]}
                 />
               ))}
@@ -161,10 +177,12 @@ export const HomeScreen = () => {
           <View style={styles.divider} />
 
           <View style={styles.tipsContainer}>
-            <Text style={[styles.sectionTitle, { marginBottom: 0 }]} >Dica do Dia</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+              Dica do Dia
+            </Text>
             <View style={styles.card}>
               {loadingTips ? (
-                <ActivityIndicator color={colors.primary} /> 
+                <ActivityIndicator color={colors.primary} />
               ) : (
                 <Text style={styles.tipText}>
                   {tips[currentTipIndex] ?? "Bem-vindo ao NutriAI!"}
@@ -174,9 +192,9 @@ export const HomeScreen = () => {
           </View>
         </ScrollView>
 
-        <AddMealModal 
-          visible={isModalVisible} 
-          onClose={() => setModalVisible(false)} 
+        <AddMealModal
+          visible={isModalVisible}
+          onClose={() => setModalVisible(false)}
           editingMeal={null}
         />
       </View>
