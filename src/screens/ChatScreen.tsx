@@ -14,11 +14,12 @@ import {
 } from "react-native";
 import { useThemeColors } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
-import { sendMessageToAI } from "../services/openaiService";
+
 import { FIREBASE_DB } from "../services/firebaseConfig";
 import firebase from "firebase/compat/app";
-import styles from "../styles/ChatScreen.style";
 import { createGeralStyles } from "../styles/Geral.style";
+import { FIREBASE_FUNCTIONS } from "../services/firebaseConfig";
+import { httpsCallable } from "firebase/functions";
 
 interface Message {
   role: "user" | "assistant";
@@ -34,6 +35,11 @@ export const ChatScreen = () => {
   const [loadingAI, setLoadingAI] = useState(false);
   const [chats, setChats] = useState<any[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+
+  const callSendMessageToAI = httpsCallable(
+    FIREBASE_FUNCTIONS,
+    "sendMessageToAI"
+  );
 
   // Buscar chats do usuário logado
   const fetchUserChats = async () => {
@@ -77,17 +83,29 @@ export const ChatScreen = () => {
     setLoadingAI(true);
 
     try {
+      // 1. Prepara o histórico (exatamente como seu código já fazia)
       const historyLimit = 5;
       const history =
         messages.length >= historyLimit
           ? messages.slice(-historyLimit)
           : messages;
-      const responseText = await sendMessageToAI(input, profile, [
-        ...history,
-        userMsg,
-      ]);
+
+      // 2. Chama a Cloud Function com os dados corretos
+      const result = await callSendMessageToAI({
+        message: input,
+        userProfile: { formResponses: profile?.formResponses }, // <-- CORRIGIDO
+        history: history,
+      });
+      // 3. Pega a resposta de dentro de 'result.data'
+      const responseText = (result.data as { response: string }).response;
+
+      if (!responseText) {
+        throw new Error("A IA não retornou uma resposta.");
+      }
+
       const aiMsg: Message = { role: "assistant", content: responseText };
 
+      // 4. Salva no Firestore (exatamente como seu código já fazia)
       await FIREBASE_DB.collection("chats")
         .doc(currentChatId)
         .update({
@@ -96,6 +114,7 @@ export const ChatScreen = () => {
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
+      console.error("Erro ao chamar Cloud Function:", error); // Log mais claro
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Erro ao obter resposta da IA." },

@@ -1,9 +1,13 @@
+// src/services/firebaseConfig.ts
+
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import 'firebase/compat/storage';
+// Importação do Functions (v9)
+import { getFunctions } from "firebase/functions"; 
 
-
+// Suas importações do @env (Correto!)
 import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
@@ -13,6 +17,7 @@ import {
   FIREBASE_APP_ID
 } from '@env';
 
+// Sua config (Correto!)
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
@@ -22,12 +27,17 @@ const firebaseConfig = {
   appId: FIREBASE_APP_ID,
 };
 
-// Passo 2: Inicializar o app usando a API compat
+// Sua inicialização (Correto!)
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-// Passo 3: Exportar o serviço de autenticação no estilo compat
+const app = firebase.app(); 
+
+// Suas exportações (Correto!)
 export const FIREBASE_AUTH = firebase.auth();
 export const FIREBASE_DB = firebase.firestore();
 export const FIREBASE_STORAGE = firebase.storage();
+
+// A ÚNICA LINHA NOVA QUE VOCÊ PRECISA ADICIONAR:
+export const FIREBASE_FUNCTIONS = getFunctions(app, 'us-central1');
