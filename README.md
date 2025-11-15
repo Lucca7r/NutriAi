@@ -7,6 +7,9 @@
 <br>
 <p>
 Aplicativo de apoio nutricional, onde o usuário pode registrar sua dieta atual (caso tenha acompanhamento profissional) ou receber orientações básicas de nutrição com base em perguntas guiadas. O app também oferece um chat com inteligência artificial (GPT API) para sugerir trocas de refeições e receitas fitness personalizadas.<br></p>
+
+
+politicas de provacidade: https://lucca7r.github.io/nutriai-politica/
 <br>
 
 # 📁 Estrutura de Pastas
