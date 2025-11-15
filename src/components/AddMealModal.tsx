@@ -8,9 +8,15 @@ import {
 } from 'react-native';
 import { useThemeColors } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { FIREBASE_DB } from '../services/firebaseConfig';
+
+// --- MUDANÇA 1: Importar FIREBASE_FUNCTIONS ---
+import { FIREBASE_DB, FIREBASE_FUNCTIONS } from '../services/firebaseConfig';
 import firebase from 'firebase/compat/app';
-import { estimateCaloriesFromText } from '../services/openaiService';
+
+// --- MUDANÇA 2: Remover 'openaiService' e adicionar 'httpsCallable' ---
+// import { estimateCaloriesFromText } from '../services/openaiService'; // <-- DELETADO
+import { httpsCallable } from "firebase/functions"; // <-- ADICIONADO
+
 import { createGeralStyles } from "../styles/Geral.style";
 
 // Interface para definir a estrutura de uma refeição
@@ -40,6 +46,9 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
   const [isEstimating, setIsEstimating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // --- MUDANÇA 3: Criar a referência da função ---
+  const callEstimateCalories = httpsCallable(FIREBASE_FUNCTIONS, 'estimateCaloriesFromText');
+
   // Efeito que preenche o formulário se estivermos no modo de edição
   useEffect(() => {
     if (visible && editingMeal) {
@@ -49,6 +58,7 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
     }
   }, [visible, editingMeal]);
 
+  // --- MUDANÇA 4: Atualizar a função 'handleEstimateCalories' ---
   const handleEstimateCalories = async () => {
     if (!description.trim()) {
       Alert.alert("Atenção", "Por favor, descreva a refeição primeiro.");
@@ -58,7 +68,14 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
     setIsEstimating(true);
     setCalories('0');
     try {
-      const estimatedCalories = await estimateCaloriesFromText(description);
+      // --- LÓGICA ANTIGA REMOVIDA ---
+      // const estimatedCalories = await estimateCaloriesFromText(description); 
+      
+      // --- LÓGICA NOVA (SEGURA) ---
+      const result = await callEstimateCalories({ mealDescription: description });
+      const estimatedCalories = (result.data as { calories: number }).calories;
+      // --- FIM DA LÓGICA NOVA ---
+
       if (estimatedCalories > 0) {
         setCalories(estimatedCalories.toString());
       } else {
@@ -219,6 +236,8 @@ export default function AddMealModal({ visible, onClose, editingMeal }: AddMealM
   );
 }
 
+// O StyleSheet.create aqui é local e não depende do Geral.style.ts,
+// então o mantemos como está no seu arquivo original.
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)' },
   modalView: { width: '90%', borderRadius: 20, padding: 25, elevation: 5 },
@@ -229,4 +248,3 @@ const styles = StyleSheet.create({
   saveButton: { width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
 });
-
