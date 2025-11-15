@@ -3,6 +3,15 @@ const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const { OpenAI } = require("openai");
 
+// --- ADIÇÕES PARA A FUNÇÃO DE EXCLUSÃO ---
+const admin = require("firebase-admin");
+//const { onUserDeleted } = require("firebase-functions/v2/auth");
+const { user } = require("firebase-functions/v2/auth");
+const { getFirestore } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
+
+// Inicializa o Admin SDK (necessário para a função de exclusão)
+admin.initializeApp();
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 
 function buildSystemMessageRecipe(userProfile) {
@@ -234,3 +243,68 @@ exports.generatePersonalizedTips = onCall({ secrets: [OPENAI_API_KEY] }, async (
   }
 });
 //fim digas
+
+
+
+exports.onUserDeleted = user().onDelete(async (event) => {
+  const user = event.data;
+  const uid = user.uid;
+  const db = getFirestore();
+  const storage = getStorage();
+  const bucket = storage.bucket(); // Pega o bucket de armazenamento padrão
+
+  logger.info(`Iniciando limpeza de dados para o usuário deletado: ${uid}`);
+
+  const batch = db.batch();
+
+  // 1. Deletar documento 'formResponses'
+  const formRef = db.collection("formResponses").doc(uid);
+  batch.delete(formRef);
+
+  // 2. Deletar 'chats' do usuário
+  const chatsQuery = db.collection("chats").where("userId", "==", uid);
+  const chatsSnapshot = await chatsQuery.get();
+  chatsSnapshot.forEach((doc) => {
+    logger.info(`Deletando chat: ${doc.id}`);
+    batch.delete(doc.ref);
+  });
+
+  // 3. Deletar 'folders' E SUAS SUBCOLEÇÕES 'recipes' (Exclusão Recursiva)
+  const foldersQuery = db.collection("folders").where("userId", "==", uid);
+  const foldersSnapshot = await foldersQuery.get();
+  
+  for (const folderDoc of foldersSnapshot.docs) {
+    logger.info(`Iniciando exclusão da pasta: ${folderDoc.id}`);
+    
+    // Deleta as receitas dentro da pasta
+    const recipesQuery = folderDoc.ref.collection("recipes");
+    const recipesSnapshot = await recipesQuery.get();
+    recipesSnapshot.forEach((recipeDoc) => {
+      logger.info(`...deletando receita ${recipeDoc.id} da pasta ${folderDoc.id}`);
+      batch.delete(recipeDoc.ref);
+    });
+    
+    // Deleta a pasta principal
+    batch.delete(folderDoc.ref);
+  }
+
+  // 4. Executa todas as exclusões do Firestore no batch
+  try {
+    await batch.commit();
+    logger.info(`Dados do Firestore para ${uid} limpos com sucesso.`);
+  } catch (e) {
+    logger.error("Erro ao commitar batch de exclusão do Firestore:", e);
+  }
+
+  // 5. Deletar arquivos do Storage (fora do batch do Firestore)
+  const prefix = `profile_images/${uid}/`;
+  try {
+    // Deleta todos os arquivos nessa pasta
+    await bucket.deleteFiles({ prefix: prefix });
+    logger.info(`Arquivos do Storage em ${prefix} deletados.`);
+  } catch (e) {
+    logger.error("Erro ao deletar arquivos do Storage:", e);
+  }
+
+  logger.info(`Limpeza concluída para o usuário: ${uid}`);
+});

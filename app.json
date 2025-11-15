@@ -21,14 +21,22 @@
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./google-services.json",
-      "package": "com.lucas.nutriaipro"
+      "package": "com.lucas.nutriaipro",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O NutriAi precisa de acesso à sua galeria para permitir que você escolha uma foto de perfil.",
+          "cameraPermission": "O NutriAi precisa de acesso à sua câmera para permitir que você tire uma nova foto de perfil."
+        }
+      ]
     ],
     "extra": {
       "eas": {
