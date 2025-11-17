@@ -2,6 +2,60 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const { OpenAI } = require("openai");
+const admin = require("firebase-admin");
+
+// Inicializa o app admin do Firebase
+admin.initializeApp();
+
+// ===================================================================
+// == NOVA FUNÇÃO DE EXCLUSÃO (Estilo V2) ==
+// ===================================================================
+
+exports.solicitarExclusao = onCall({ cors: true }, async (request) => {
+  // A função onCall já habilita o CORS com a opção { cors: true }
+
+  const email = request.data.email;
+
+  if (!email) {
+    logger.error("Tentativa de exclusão sem e-mail.");
+    throw new HttpsError("invalid-argument", "E-mail é obrigatório");
+  }
+
+  try {
+    // 1. Encontra o usuário pelo e-mail no Firebase Authentication
+    const userRecord = await admin.auth().getUserByEmail(email);
+    const uid = userRecord.uid;
+
+    // 2. Apaga os dados do usuário do Firestore
+    //    ATENÇÃO: Mude 'uusers' para o nome correto da sua coleção de usuários!
+    const userDocRef = admin.firestore().collection("users").doc(uid);
+
+    // Apaga o documento principal do usuário
+    await userDocRef.delete();
+
+    // 3. Apaga o usuário do Firebase Authentication
+    await admin.auth().deleteUser(uid);
+
+    logger.info(`Usuário excluído com sucesso: ${email} (UID: ${uid})`);
+    return { message: "Conta excluída com sucesso." };
+  } catch (error) {
+    logger.error("Erro ao excluir usuário:", error);
+
+    if (error.code === "auth/user-not-found") {
+      throw new HttpsError(
+        "not-found",
+        "Nenhuma conta encontrada com este e-mail."
+      );
+    }
+
+    throw new HttpsError("internal", "Erro ao processar sua solicitação.");
+  }
+});
+
+// ===================================================================
+// ==
+// ==  SUAS OUTRAS CLOUD FUNCTIONS (4 no total) ==
+// ===================================================================
 
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
 
@@ -51,186 +105,215 @@ AVISO: Não há dados personalizados do usuário. Forneça respostas genéricas 
   return systemMessage.trim();
 }
 
-// ===================================================================
-// ==  cuidado ou muda galera CLOUD FUNCTIONS (4 no total) ==
-// ===================================================================
-
 const getOpenAIInstance = () => {
   return new OpenAI({
     apiKey: OPENAI_API_KEY.value(),
   });
 };
 
+//chat principal famila
+exports.sendMessageToAI = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Você precisa estar logado.");
+    }
 
-//chat principal famila 
-exports.sendMessageToAI = onCall({ secrets: [OPENAI_API_KEY] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Você precisa estar logado.");
-  }
+    const { userProfile, message, history = [] } = request.data;
 
-  const { userProfile, message, history = [] } = request.data;
-
-  const systemContext = buildSystemMessage(userProfile);
-  const historyText = history
-    .map((msg) => `${msg.role === "user" ? "Usuário" : "Assistente"}: ${msg.content}`)
-    .join("\n");
+    const systemContext = buildSystemMessage(userProfile);
+    const historyText = history
+      .map(
+        (msg) =>
+          `${msg.role === "user" ? "Usuário" : "Assistente"}: ${msg.content}`
+      )
+      .join("\n");
 
     const prompt = `
-    ${systemContext}
-    ${history.length > 0 ? "--- HISTÓRICO DA CONVERSA ---\n" + historyText + "\n--- FIM DO HISTÓRICO ---" : ""}
-    --- PERGUNTA DO USUÁRIO ---
-    ${message}
-  `;
+    ${systemContext}
+    ${
+      history.length > 0
+        ? "--- HISTÓRICO DA CONVERSA ---\n" +
+          historyText +
+          "\n--- FIM DO HISTÓRICO ---"
+        : ""
+    }
+    --- PERGUNTA DO USUÁRIO ---
+    ${message}
+  `;
 
-  try {
-    const openai = getOpenAIInstance();
-    logger.info("Enviando requisição (Chat Principal V5) para a OpenAI...");
-    
+    try {
+      const openai = getOpenAIInstance();
+      logger.info("Enviando requisição (Chat Principal V5) para a OpenAI...");
+      const response = await openai.responses.create({
+        model: "gpt-4o-mini",
+        input: prompt,
+      });
 
-    const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: prompt,
-    });
-
-    return { response: response.output_text ?? "Não consegui gerar uma resposta." };
-
-  } catch (error) {
-    logger.error("Erro no Chat Principal:", error);
-    throw new HttpsError("internal", "Erro ao processar a requisição de IA.", error);
+      return {
+        response: response.output_text ?? "Não consegui gerar uma resposta.",
+      };
+    } catch (error) {
+      logger.error("Erro no Chat Principal:", error);
+      throw new HttpsError(
+        "internal",
+        "Erro ao processar a requisição de IA.",
+        error
+      );
+    }
   }
-});
+);
 
 //fim do chat principal famila
 
-
 //chat receitas
 
-exports.sendMessageToRecipeAI = onCall({ secrets: [OPENAI_API_KEY] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Você precisa estar logado.");
-  }
+exports.sendMessageToRecipeAI = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Você precisa estar logado.");
+    }
 
-  const { userProfile, message } = request.data;
-  const systemContext = buildSystemMessageRecipe(userProfile);
+    const { userProfile, message } = request.data;
+    const systemContext = buildSystemMessageRecipe(userProfile);
 
-  const prompt = `${systemContext}
+    const prompt = `${systemContext}
 --- PERGUNTA DO USUÁRIO ---
 ${message}
 --- FIM DA PERGUNTA ---
 `;
 
-  try {
-    const openai = getOpenAIInstance();
-    logger.info("Enviando requisição (Receitas V5) para a OpenAI...");
+    try {
+      const openai = getOpenAIInstance();
+      logger.info("Enviando requisição (Receitas V5) para a OpenAI...");
 
-    const response = await openai.responses.create({
-      model: "gpt-5-mini",
-      input: prompt,
-    });
+      const response = await openai.responses.create({
+        model: "gpt-5-mini",
+        input: prompt,
+      });
 
-    return { response: response.output_text ?? "Não consegui gerar uma receita." };
-
-  } catch (error) {
-    logger.error("Erro no Chat de Receitas:", error);
-    throw new HttpsError("internal", "Erro ao processar a requisição de IA.", error);
+      return {
+        response: response.output_text ?? "Não consegui gerar uma receita.",
+      };
+    } catch (error) {
+      logger.error("Erro no Chat de Receitas:", error);
+      throw new HttpsError(
+        "internal",
+        "Erro ao processar a requisição de IA.",
+        error
+      );
+    }
   }
-});
-
+);
 
 //fim do chat receitas
 
 //colorias
-exports.estimateCaloriesFromText = onCall({ secrets: [OPENAI_API_KEY] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Você precisa estar logado.");
-  }
-
-  const { mealDescription } = request.data;
-  const prompt = `
-    Analise a seguinte descrição de uma refeição e retorne apenas o número total de calorias estimadas.
-    Sua resposta deve conter SOMENTE o número, sem texto adicional, sem "kcal" ou "calorias".
-    Exemplo: se a estimativa for 350, sua resposta deve ser exatamente "350".
-    Se a descrição não parecer uma comida ou for muito vaga, retorne "0".
-    Descrição da refeição: "${mealDescription}"
-  `;
-
-  try {
-    const openai = getOpenAIInstance();
-    logger.info("Enviando requisição (Calorias V5) para a OpenAI...");
-
-    const response = await openai.responses.create({
-      model: "gpt-5-mini",
-      input: prompt,
-    });
-    
-    const resultText = response.output_text?.trim() ?? "0";
-    const calories = parseInt(resultText, 10);
-
-    if (isNaN(calories)) {
-      logger.error("A IA (Calorias) não retornou um número válido:", resultText);
-      return { calories: 0 };
+exports.estimateCaloriesFromText = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Você precisa estar logado.");
     }
 
-    return { calories: calories };
+    const { mealDescription } = request.data;
+    const prompt = `
+    Analise a seguinte descrição de uma refeição e retorne apenas o número total de calorias estimadas.
+    Sua resposta deve conter SOMENTE o número, sem texto adicional, sem "kcal" ou "calorias".
+    Exemplo: se a estimativa for 350, sua resposta deve ser exatamente "350".
+    Se a descrição não parecer uma comida ou for muito vaga, retorne "0".
+    Descrição da refeição: "${mealDescription}"
+  `;
 
-  } catch (error) {
-    logger.error("Erro ao estimar calorias:", error);
-    throw new HttpsError("internal", "Erro ao processar a requisição de IA.", error);
+    try {
+      const openai = getOpenAIInstance();
+      logger.info("Enviando requisição (Calorias V5) para a OpenAI...");
+
+      const response = await openai.responses.create({
+        model: "gpt-5-mini",
+        input: prompt,
+      });
+      const resultText = response.output_text?.trim() ?? "0";
+      const calories = parseInt(resultText, 10);
+
+      if (isNaN(calories)) {
+        logger.error(
+          "A IA (Calorias) não retornou um número válido:",
+          resultText
+        );
+        return { calories: 0 };
+      }
+
+      return { calories: calories };
+    } catch (error) {
+      logger.error("Erro ao estimar calorias:", error);
+      throw new HttpsError(
+        "internal",
+        "Erro ao processar a requisição de IA.",
+        error
+      );
+    }
   }
-});
-
+);
 
 //fim calorias
 
 //digas
-exports.generatePersonalizedTips = onCall({ secrets: [OPENAI_API_KEY] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Você precisa estar logado.");
-  }
-
-  const { userProfile } = request.data;
-  if (!userProfile?.formResponses) {
-    return {
-      tips: [
-        "Beba pelo menos 2 litros de água por dia.",
-        "Preencha o formulário inicial para receber dicas personalizadas!",
-        "Uma boa noite de sono é fundamental para seus resultados.",
-      ]
-    };
-  }
-
-  const prompt = `
-    Baseado no perfil de usuário abaixo, gere 2 dicas curtas, úteis e motivadoras sobre nutrição e bem-estar.
-    As dicas devem ser diretamente relacionadas ao "objetivo" principal do usuário.
-    Se o usuário tem restrições, uma das dicas pode ser sobre como lidar com essa restrição.
-
-    Perfil do usuário:
-    ${JSON.stringify(userProfile.formResponses)}
-
-    Sua resposta DEVE ser um array JSON contendo 2 strings, e nada mais.
-    Exemplo de resposta: ["Sua dica 1 aqui.", "Sua dica 2 aqui."]
-  `;
-
-  try {
-    const openai = getOpenAIInstance();
-    logger.info("Enviando requisição (Dicas V5) para a OpenAI...");
-
-    const response = await openai.responses.create({
-      model: "gpt-5-mini",
-      input: prompt,
-    });
-    
-    const responseText = response.output_text ?? "[]";
-    const tipsArray = JSON.parse(responseText);
-
-    if (Array.isArray(tipsArray) && tipsArray.every((item) => typeof item === "string")) {
-      return { tips: tipsArray };
+exports.generatePersonalizedTips = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Você precisa estar logado.");
     }
-    throw new Error("A IA não retornou um array de strings válido.");
 
-  } catch (error) {
-    logger.error("Erro ao gerar dicas:", error);
-    return { tips: ["Tente consumir mais frutas e vegetais no seu dia a dia."] };
+    const { userProfile } = request.data;
+    if (!userProfile?.formResponses) {
+      return {
+        tips: [
+          "Beba pelo menos 2 litros de água por dia.",
+          "Preencha o formulário inicial para receber dicas personalizadas!",
+          "Uma boa noite de sono é fundamental para seus resultados.",
+        ],
+      };
+    }
+
+    const prompt = `
+    Baseado no perfil de usuário abaixo, gere 2 dicas curtas, úteis e motivadoras sobre nutrição e bem-estar.
+    As dicas devem ser diretamente relacionadas ao "objetivo" principal do usuário.
+    Se o usuário tem restrições, uma das dicas pode ser sobre como lidar com essa restrição.
+
+    Perfil do usuário:
+    ${JSON.stringify(userProfile.formResponses)}
+
+    Sua resposta DEVE ser um array JSON contendo 2 strings, e nada mais.
+    Exemplo de resposta: ["Sua dica 1 aqui.", "Sua dica 2 aqui."]
+  `;
+
+    try {
+      const openai = getOpenAIInstance();
+      logger.info("Enviando requisição (Dicas V5) para a OpenAI...");
+
+      const response = await openai.responses.create({
+        model: "gpt-5-mini",
+        input: prompt,
+      });
+      const responseText = response.output_text ?? "[]";
+      const tipsArray = JSON.parse(responseText);
+
+      if (
+        Array.isArray(tipsArray) &&
+        tipsArray.every((item) => typeof item === "string")
+      ) {
+        return { tips: tipsArray };
+      }
+      throw new Error("A IA não retornou um array de strings válido.");
+    } catch (error) {
+      logger.error("Erro ao gerar dicas:", error);
+      return {
+        tips: ["Tente consumir mais frutas e vegetais no seu dia a dia."],
+      };
+    }
   }
-});
+);
 //fim digas
