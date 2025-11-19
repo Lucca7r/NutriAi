@@ -12,13 +12,7 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "android": {
-        "buildType": "app-bundle",
-        "secrets": {
-          "files": ["GOOGLE_SERVICES_JSON"]
-        }
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
